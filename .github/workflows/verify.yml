@@ -1,7 +1,8 @@
 name: Verify page outputs
 
-# Checks that every printed output shown on the page still matches real NumPy and TensorFlow,
-# and that all Python scripts run. Hosting is separate: GitHub Pages serves the main branch root.
+# For every walkthrough: checks that each printed output shown on the page still matches real
+# NumPy (and TensorFlow, where used), and that all Python scripts run. Hosting is separate:
+# GitHub Pages serves the main branch root.
 on:
   push:
     branches: [main]
@@ -11,21 +12,29 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each project folder has its own package.json, requirements.txt and `npm test`.
+        project:
+          - ml-ai/tiny-cnn-walkthrough
+          - ml-ai/tiny-llm-walkthrough
+    name: verify (${{ matrix.project }})
     defaults:
       run:
-        working-directory: ml-ai/tiny-cnn-walkthrough
+        working-directory: ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: ml-ai/tiny-cnn-walkthrough/package-lock.json
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: ml-ai/tiny-cnn-walkthrough/requirements.txt
+          cache-dependency-path: ${{ matrix.project }}/requirements.txt
       - run: npm ci
       - run: pip install -r requirements.txt
       - run: npm test

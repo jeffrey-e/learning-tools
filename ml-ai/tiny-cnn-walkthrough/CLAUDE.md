@@ -43,7 +43,7 @@ Run `npm test` after every change to `index.html`. A change is not done until it
 
 ## Page conventions
 
-- Colours only via the CSS tokens at the top of the file, with light and dark values (both the `prefers-color-scheme` block and `[data-theme]`). No literal colours in components.
+- Colours only via the CSS tokens at the top of the file, with light and dark values (both the `prefers-color-scheme` block and `[data-theme]`). No literal colours in components. The same styles are shared with the rest of the site as `assets/site.css` (this page keeps its inline copy so it works as a single file); keep the two in sync.
 - Sentence case for all labels and headings. Plain, direct copy.
 - Keep it a single file with no build step. New libraries only from jsDelivr or cdnjs, pinned to an exact version.
 - Must work at phone width (about 400px) with no horizontal page scroll.

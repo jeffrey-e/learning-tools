@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tiny LLM Walkthrough</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/site.css">
+<style>
+/* Page-specific components; everything else comes from the shared site.css */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;flex-direction:column;align-items:center;gap:1px;min-width:52px;padding:6px 10px;font-family:var(--f-mono);font-size:14px}
+.chip .id{font-size:11px;color:var(--faint)}
+.chip[aria-pressed="true"] .id{color:var(--accent)}
+.mt td.name{min-width:48px;font-family:var(--f-mono);font-size:12px}
+.mt td.masked{color:var(--faint)}
+.mt tr.focus td.name{color:var(--accent)}
+.heat{background:color-mix(in srgb,var(--accent) calc(var(--w) * 100%),var(--panel));color:var(--fg)}
+.heat.hi{color:var(--paper)}
+.mats{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.mats .stage{align-items:flex-start}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">Learning tools</a> / <a href="../">Machine learning and AI</a> / Tiny LLM walkthrough</nav>
+  <div class="intro">
+    <h1>Tiny LLM Walkthrough</h1>
+    <p>A sentence goes through a complete, tiny language model: tokens, embeddings, position encoding, one self-attention head and a prediction of the next word. It's the same machinery as a large language model, with 8 words and 4 dimensions instead of 100,000 tokens and thousands of dimensions. Each stage has the matching NumPy code, with the output it prints for the current values; open it with Show code. Edit any embedding or weight and watch the prediction change.</p>
+  </div>
+
+  <div class="toolbar" role="toolbar" aria-label="Controls">
+    <span class="lab">Sentence</span>
+    <span id="presets" class="row"></span>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="lab">Temperature</span>
+    <span id="temps" class="row"></span>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="reset">Reset weights</button>
+    <button id="code-all">Show all code</button>
+    <button id="copy">Copy full script</button>
+    <span class="toast" id="toast" aria-live="polite"></span>
+  </div>
+  <textarea id="copy-fallback" hidden readonly style="width:100%;height:200px;font-family:var(--f-mono);font-size:12px" aria-label="Full Python script"></textarea>
+
+  <section aria-labelledby="s0">
+    <h2 id="s0"><span class="no">0</span>Where the values come from</h2>
+    <p class="note">Every number in a language model has one of four origins. Each stage below is tagged with the same labels.</p>
+    <div class="sources">
+      <div class="src"><span class="tag t-data">Input data</span><span>The text you send in, the prompt. Split into tokens and turned into numbers before the model sees it.</span><span class="ex">Here: the sentence above, built from the 8-word vocabulary.</span></div>
+      <div class="src"><span class="tag t-choice">Design choice</span><span>Decided before training: vocabulary, embedding size, number of attention heads and layers, the position encoding.</span><span class="ex">Here: 8 tokens, 4 dimensions, 1 head, 1 layer, sinusoidal positions.</span></div>
+      <div class="src"><span class="tag t-learn">Learned</span><span>The parameters. Real models learn all of them from huge amounts of text by predicting the next token, over and over.</span><span class="ex">Here: the attention matrices were trained on four sentences. The embeddings were set by hand, so that you can read their columns.</span></div>
+      <div class="src"><span class="tag t-calc">Computed</span><span>Produced while one prompt passes through the model, recalculated for every prompt and then discarded.</span><span class="ex">Here: positions, queries, keys, values, attention weights, logits and probabilities.</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s1">
+    <h2 id="s1"><span class="no">1</span>Text to tokens <span class="tag t-data">Input data</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">The model can't read letters. Each word is looked up in a fixed vocabulary and replaced by its number, the token id. Real tokenizers split text into pieces of words (“walk”, “ing”) so that any text fits a vocabulary of around 100,000 pieces. Here every word is one token. Click a word to add it; click a token to inspect it in the attention step.</p>
+        <div class="row" id="vocab" aria-label="Add a word"></div>
+        <div class="chips" id="chips" aria-label="Tokens"></div>
+        <div class="row"><button id="pop">Remove last word</button></div>
+      </div>
+      <details class="py" data-cell="tokens"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s2">
+    <h2 id="s2"><span class="no">2</span>Embeddings <span class="tag t-learn">Learned</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Each token id picks one row from the embedding table: a list of numbers that stands for the word's meaning. Words used in similar ways get similar rows. These 4 columns were set by hand so you can read them; in a real model there are hundreds or thousands of columns, learned during training, and no column has a neat name. The rows for the words in the sentence are highlighted. All values are editable.</p>
+        <div class="scroll"><table class="mt" id="t-E"></table></div>
+        <p class="note">Cosine similarity compares the direction of two rows: 1 means the same direction, 0 unrelated, −1 opposite. Cat and dog score close to 1; that closeness is what lets a model use what it learned about one for the other.</p>
+        <div class="scroll"><table class="mt" id="t-sim"></table></div>
+      </div>
+      <details class="py" data-cell="embeddings"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s3">
+    <h2 id="s3"><span class="no">3</span>Position <span class="tag t-choice">Design choice</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Attention on its own doesn't see word order: “the cat sat” and “sat the cat” would look the same. So each position adds its own fixed pattern of sines and cosines to the embedding. The two “the”s in “the cat sat on the” start out identical and end up different.</p>
+        <div class="mats">
+          <div class="stage"><span class="t" data-src="learn">Token embedding</span><span class="d">E[id]</span><div class="scroll"><table class="mt" id="t-tok"></table></div></div>
+          <span class="arrow">+</span>
+          <div class="stage"><span class="t" data-src="calc">Position</span><span class="d">sin / cos</span><div class="scroll"><table class="mt" id="t-pe"></table></div></div>
+          <span class="arrow">=</span>
+          <div class="stage"><span class="t" data-src="calc">Input to attention</span><span class="d">X</span><div class="scroll"><table class="mt" id="t-X"></table></div></div>
+        </div>
+      </div>
+      <details class="py" data-cell="positions"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s4">
+    <h2 id="s4"><span class="no">4</span>Self-attention <span class="tag t-learn">Learned</span> <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Each word asks a question (its query), offers a label (its key) and carries content (its value), all made by multiplying X with a learned matrix. A word's query is compared with the keys of itself and every earlier word; softmax turns those scores into weights that add up to 1. A word can't look ahead: when the model predicts, the future doesn't exist yet. The three matrices are editable.</p>
+        <div class="mats">
+          <div class="stage"><span class="t" data-src="learn">Query matrix</span><span class="d">Wq</span><div class="scroll"><table class="mt" id="t-Wq"></table></div></div>
+          <div class="stage"><span class="t" data-src="learn">Key matrix</span><span class="d">Wk</span><div class="scroll"><table class="mt" id="t-Wk"></table></div></div>
+          <div class="stage"><span class="t" data-src="learn">Value matrix</span><span class="d">Wv</span><div class="scroll"><table class="mt" id="t-Wv"></table></div></div>
+        </div>
+        <p class="note">Attention weights: row = the word that is looking, column = the word it looks at. Click a row or a token above to see its calculation.</p>
+        <div class="scroll"><table class="mt" id="t-A"></table></div>
+        <div class="math" id="att-math"></div>
+      </div>
+      <details class="py" data-cell="attention"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s5">
+    <h2 id="s5"><span class="no">5</span>Next word <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">What attention gathered is projected with one more learned matrix and added to the input (the residual connection). The last position now holds the model's guess. Its row is compared with every token's embedding (the same table as step 2, reused): a high score means “the next word looks like this one”. Softmax turns the scores (logits) into probabilities. Temperature divides the logits first: below 1 makes the top choice stronger, above 1 flattens the choices.</p>
+        <div class="mats">
+          <div class="stage"><span class="t" data-src="learn">Output matrix</span><span class="d">Wo, editable</span><div class="scroll"><table class="mt" id="t-Wo"></table></div></div>
+          <div class="stage"><span class="t" data-src="calc">Last position</span><span class="d">H = X + (A·V)·Wo</span><div class="scroll"><table class="mt" id="t-H"></table></div></div>
+        </div>
+        <div class="bars" id="bars"></div>
+        <div class="row">
+          <button id="add-top">Add the top word</button>
+          <button id="sample">Sample a word</button>
+        </div>
+        <p class="note">“Add the top word” always picks the most likely word. “Sample a word” draws at random using the probabilities, which is how chat models vary their answers. Either way, the new word is added to the sentence and the whole model runs again: that's how a language model writes, one token at a time.</p>
+      </div>
+      <details class="py" data-cell="next"></details>
+    </div>
+  </section>
+</div>
+
+<script src="weights.js"></script>
+<script src="model.js"></script>
+<script>
+(() => {
+  'use strict';
+  const M = globalThis.TinyLLM;
+  const DEFAULTS = globalThis.LLM_WEIGHTS;
+  const PRESETS = ['the', 'the cat', 'the cat sat', 'the cat sat on', 'the cat sat on the', 'the dog ran on the mat'];
+  const TEMPS = [0.5, 1, 2, 5];
+  const CODE_KEY = 'tinyllm-code-open';
+  const $ = id => document.getElementById(id);
+  const clone = w => JSON.parse(JSON.stringify(w));   // the weights are plain JSON
+
+  const state = { words: ['the', 'cat', 'sat', 'on', 'the'], temperature: 1, w: clone(DEFAULTS), sel: null };
+
+  // ---- Small DOM helpers ----
+  function el(tag, attrs = {}, ...kids) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') node.className = v;
+      else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v);
+    }
+    node.append(...kids);
+    return node;
+  }
+  const fmt = v => (Math.abs(v) < 0.0005 ? '0' : v.toFixed(Math.abs(v) >= 10 ? 1 : 2)).replace('-', '−');
+  const sign = v => (v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero');
+
+  // Renders a matrix as a table. Options: rowLabels, colLabels, editable (writes back into M), focus (row indexes), cell(v, i, j).
+  function matrixTable(table, M, { rowLabels, colLabels, editable = false, focus = [], cell } = {}) {
+    table.replaceChildren();
+    if (colLabels) table.append(el('tr', {}, el('th'), ...colLabels.map(c => el('th', { scope: 'col' }, c))));
+    M.forEach((row, i) => {
+      const tr = el('tr', { class: focus.includes(i) ? 'focus' : '' }, el('td', { class: 'name' }, rowLabels ? rowLabels[i] : ''));
+      row.forEach((v, j) => {
+        if (editable) {
+          const input = el('input', { class: 'num', inputmode: 'decimal', value: String(v), 'aria-label': `${rowLabels ? rowLabels[i] : 'row ' + i}, ${colLabels ? colLabels[j] : 'column ' + j}` });
+          input.addEventListener('change', () => {
+            const x = Number(input.value.replace('−', '-'));
+            const ok = input.value.trim() !== '' && Number.isFinite(x);
+            input.classList.toggle('bad', !ok);
+            if (ok) { M[i][j] = x; render(); }
+          });
+          tr.append(el('td', { class: sign(v) }, input));
+        } else {
+          tr.append(cell ? cell(v, i, j) : el('td', { class: sign(v) }, fmt(v)));
+        }
+      });
+      table.append(tr);
+    });
+  }
+  const heatCell = v => el('td', { class: 'heat' + (v > 0.55 ? ' hi' : ''), style: `--w:${v.toFixed(3)}` }, fmt(v));
+
+  // ---- Code panels (same component and behaviour as the CNN page) ----
+  let codeOpen = false;
+  try { codeOpen = localStorage.getItem(CODE_KEY) === '1'; } catch (e) { /* storage unavailable: default closed */ }
+  function renderCode(cells) {
+    document.querySelectorAll('details.py').forEach(d => {
+      const c = cells.find(x => x.id === d.dataset.cell);
+      const wasOpen = d.open;
+      d.replaceChildren(
+        el('summary', { class: 'py-head' }, el('span', { class: 'oc' }), el('span', { class: 'lang' }, 'NumPy')),
+        el('div', { class: 'pycell' }, el('pre', { class: 'code' }, c.code), el('pre', { class: 'out' }, c.out)),
+      );
+      d.open = wasOpen;
+    });
+  }
+  function setAllCode(open) {
+    codeOpen = open;
+    document.querySelectorAll('details.py').forEach(d => { d.open = open; });
+    $('code-all').textContent = open ? 'Hide all code' : 'Show all code';
+    try { localStorage.setItem(CODE_KEY, open ? '1' : '0'); } catch (e) { /* not remembered */ }
+  }
+
+  // ---- Render everything from state ----
+  let cells = [];
+  function render() {
+    const { w, words, temperature } = state;
+    const ids = words.map(t => w.vocab.indexOf(t));
+    const n = ids.length;
+    if (state.sel === null || state.sel >= n) state.sel = n - 1;
+    const r = M.run(ids, w, temperature);
+    const labels = words;
+
+    document.querySelectorAll('#presets button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.text === words.join(' '))));
+    document.querySelectorAll('#temps button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.t) === temperature)));
+
+    // 1. Tokens
+    $('chips').replaceChildren(...words.map((t, i) => el('button', {
+      class: 'chip', 'aria-pressed': String(i === state.sel), 'aria-label': `${t}, token id ${ids[i]}, position ${i}`,
+      onclick: () => { state.sel = i; render(); },
+    }, t, el('span', { class: 'id' }, `id ${ids[i]}`))));
+    $('pop').disabled = n <= 1;
+
+    // 2. Embeddings
+    matrixTable($('t-E'), w.E, { rowLabels: w.vocab, colLabels: w.dims, editable: true, focus: ids });
+    matrixTable($('t-sim'), M.cosine(w.E), { rowLabels: w.vocab, colLabels: w.vocab });
+
+    // 3. Position
+    const dimIdx = w.dims.map((_, j) => String(j));
+    matrixTable($('t-tok'), r.tok, { rowLabels: labels, colLabels: dimIdx });
+    matrixTable($('t-pe'), r.pe, { rowLabels: r.pe.map((_, i) => 'pos ' + i), colLabels: dimIdx });
+    matrixTable($('t-X'), r.X, { rowLabels: labels, colLabels: dimIdx });
+
+    // 4. Attention
+    for (const k of ['Wq', 'Wk', 'Wv']) matrixTable($('t-' + k), w[k], { rowLabels: dimIdx, colLabels: dimIdx, editable: true });
+    matrixTable($('t-A'), r.A, {
+      rowLabels: labels, colLabels: labels, focus: [state.sel],
+      cell: (v, i, j) => (j > i ? el('td', { class: 'masked', title: 'Masked: a later word' }, '·') : heatCell(v)),
+    });
+    $('t-A').querySelectorAll('tr').forEach((tr, k) => {
+      if (k === 0) return;
+      tr.classList.add('hov');
+      tr.addEventListener('click', () => { state.sel = k - 1; render(); });
+    });
+    const s = state.sel;
+    const seen = words.slice(0, s + 1);
+    $('att-math').innerHTML = '';
+    $('att-math').append(
+      el('div', {}, el('b', {}, `“${words[s]}” (position ${s})`), ` looks at: ${seen.map((t, j) => `${t}@${j}`).join(', ')}`),
+      el('div', {}, 'scores = q · k / √4 = ', r.scores[s].slice(0, s + 1).map(fmt).join(', ')),
+      el('div', {}, 'softmax → weights = ', el('b', {}, r.A[s].slice(0, s + 1).map(fmt).join(', '))),
+      el('div', {}, 'output = Σ weight × value = [', r.C[s].map(fmt).join(', '), ']'),
+    );
+
+    // 5. Next word
+    matrixTable($('t-Wo'), w.Wo, { rowLabels: dimIdx, colLabels: dimIdx, editable: true });
+    matrixTable($('t-H'), [r.H[n - 1]], { rowLabels: [words[n - 1]], colLabels: dimIdx });
+    const ranked = M.ranked(w.vocab, r.probs);
+    const logitOf = word => r.logits[w.vocab.indexOf(word)];
+    $('bars').replaceChildren(...ranked.map(({ word, p }, k) => el('div', { class: 'bar-row' + (k === 0 ? ' win' : '') },
+      el('span', { class: 'n' }, `${word}  (logit ${fmt(logitOf(word))})`),
+      el('div', { class: 'track' }, el('div', { class: 'fillbar', style: `width:${(p * 100).toFixed(1)}%` })),
+      el('span', { class: 'p' }, (p * 100).toFixed(1) + '%'),
+    )));
+    state.ranked = ranked;
+
+    cells = M.pythonCells(words.join(' '), w, temperature);
+    renderCode(cells);
+  }
+
+  // ---- Controls ----
+  function setWords(words) { state.words = words; state.sel = null; render(); }
+  $('presets').append(...PRESETS.map(text => el('button', { 'data-text': text, onclick: () => setWords(text.split(' ')) }, text)));
+  $('temps').append(...TEMPS.map(t => el('button', { 'data-t': String(t), onclick: () => { state.temperature = t; render(); } }, String(t))));
+  $('vocab').append(...DEFAULTS.vocab.map(t => el('button', { onclick: () => setWords([...state.words, t]) }, '+ ' + t)));
+  $('pop').addEventListener('click', () => setWords(state.words.slice(0, -1)));
+  $('add-top').addEventListener('click', () => setWords([...state.words, state.ranked[0].word]));
+  $('sample').addEventListener('click', () => {
+    let u = Math.random();
+    const pick = state.ranked.find(t => (u -= t.p) < 0) || state.ranked[state.ranked.length - 1];
+    setWords([...state.words, pick.word]);
+  });
+  $('reset').addEventListener('click', () => { state.w = clone(DEFAULTS); render(); });
+  $('code-all').addEventListener('click', () => setAllCode(!codeOpen));
+  $('copy').addEventListener('click', async () => {
+    const script = M.fullScript(cells);
+    try {
+      await navigator.clipboard.writeText(script);
+      $('toast').textContent = 'Copied';
+    } catch (e) {
+      $('copy-fallback').hidden = false;
+      $('copy-fallback').value = script;
+      $('copy-fallback').select();
+      $('toast').textContent = 'Select and copy';
+    }
+    setTimeout(() => { $('toast').textContent = ''; }, 2000);
+  });
+
+  render();
+  setAllCode(codeOpen);
+})();
+</script>
+</body>
+</html>
