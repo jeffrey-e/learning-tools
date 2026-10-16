@@ -4,7 +4,7 @@ Guidance for Claude Code working in this repository.
 
 ## What this is
 
-A teaching page that walks one 6×6 image through a tiny CNN (2 kernels of 3×3, ReLU, 2×2 max pool, flatten, dense 8→4, softmax), with editable weights, origin labels for every value, live NumPy/TensorFlow code with verified outputs, and a train mode. Hosted on GitHub Pages straight from the `main` branch root. There is no build step.
+A teaching page that walks one 6×6 image through a tiny CNN (2 kernels of 3×3, ReLU, 2×2 max pool, flatten, dense 8→4, softmax), with editable weights, origin labels for every value, live NumPy/TensorFlow code with verified outputs, and a train mode. Lives in `ml-ai/tiny-cnn-walkthrough/` and is hosted on GitHub Pages straight from the `main` branch (the repository root is a navigation page). There is no build step.
 
 ## Layout
 

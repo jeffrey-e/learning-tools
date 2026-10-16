@@ -4,9 +4,9 @@ An interactive, single-page explanation of how a convolutional neural network wo
 
 A 6×6 drawing goes through two 3×3 kernels, ReLU, 2×2 max pooling, flatten, a dense layer and softmax, and comes out as one of four classes: vertical line, horizontal line, cross/box or empty.
 
-**Open it:** https://jeffrey-e.github.io/learning-tools/
+**Open it:** https://jeffrey-e.github.io/learning-tools/ml-ai/tiny-cnn-walkthrough/
 
-**Run the Python in your browser:** [Open the notebook in Google Colab](https://colab.research.google.com/github/jeffrey-e/learning-tools/blob/main/notebooks/tiny_cnn_walkthrough.ipynb)
+**Run the Python in your browser:** [Open the notebook in Google Colab](https://colab.research.google.com/github/jeffrey-e/learning-tools/blob/main/ml-ai/tiny-cnn-walkthrough/notebooks/tiny_cnn_walkthrough.ipynb)
 
 ## What the page shows
 
@@ -59,5 +59,4 @@ python/               standalone scripts generated from the page
 notebooks/            Colab / Jupyter notebook generated from the page
 tests/                headless page driver + Python output checker
 tools/                regenerates python/ and the notebook from index.html (npm run generate)
-docs/                 background on how and why the project was built
 ```
