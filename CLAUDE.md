@@ -22,6 +22,8 @@ ml-ai/tiny-llm-walkthrough/    a self-contained project
 3. Add a card to the section's `index.html`. For a new section, add a folder with an `index.html` and a card on the home page.
 4. Add the folder to the matrix in `.github/workflows/verify.yml`.
 
+External tools go in the section page's "Other useful tools" list: one `<li>` card with an `<h3>` title, a sentence on what it shows, and a `.url` line naming the site and its makers.
+
 ## Conventions
 
 - **Styles:** colours only through the tokens in `assets/site.css`, with light and dark values. `tiny-cnn-walkthrough/index.html` keeps its own inline copy (it's designed to work as a single downloaded file); if you change a token or shared component, change both.
