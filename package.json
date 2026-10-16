@@ -1,0 +1,15 @@
+{
+  "name": "tiny-cnn-walkthrough",
+  "private": true,
+  "description": "Verification harness for the Tiny CNN Walkthrough page. The page itself needs no build step.",
+  "scripts": {
+    "dump": "node tests/dump_states.js",
+    "test": "node tests/dump_states.js && python3 tests/check_outputs.py",
+    "test:quick": "node tests/dump_states.js && python3 tests/check_outputs.py --quick",
+    "generate": "node tools/generate_python.js && python3 tools/build_notebook.py"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs": "4.22.0",
+    "jsdom": "24.1.3"
+  }
+}

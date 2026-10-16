@@ -1,0 +1,4 @@
+# Tested with Python 3.13, NumPy 2.5 and TensorFlow 2.21 (October 2026).
+numpy>=2.0
+# Only needed for the TensorFlow scripts, part 2 of the notebook, and the tests.
+tensorflow>=2.16

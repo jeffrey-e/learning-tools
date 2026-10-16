@@ -1,0 +1,8 @@
+node_modules/
+tests/states.json
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+cnn-env/
+tools/nbcells.json
+.DS_Store
