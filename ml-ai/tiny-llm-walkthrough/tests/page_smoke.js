@@ -29,7 +29,7 @@ if (topWord() !== 'mat') fail(`default prediction is "${topWord()}", expected "m
 const M = window.TinyLLM;
 for (const b of doc.querySelectorAll('#presets button')) {
   click(b);
-  const cells = M.pythonCells(b.dataset.text, window.LLM_WEIGHTS);
+  const cells = M.pythonCells(b.dataset.text, window.LLM_WEIGHTS, { merges: 10 });
   for (const c of cells) if (outText(c.id) !== c.out) fail(`code output for "${b.dataset.text}" / ${c.id} differs from model.js`);
 }
 for (const b of doc.querySelectorAll('#temps button')) click(b);
@@ -57,11 +57,21 @@ type('The big cat sat on the old mat.');
 if (doc.querySelectorAll('#chips .chip.unk').length !== 2) fail('unknown words were not marked as skipped');
 if (doc.querySelectorAll('#chips button.chip').length !== 7) fail('known words were not turned into tokens');
 if (doc.getElementById('unknown-note').hidden) fail('the unknown-word note is not shown');
-for (const c of M.pythonCells('The big cat sat on the old mat.', window.LLM_WEIGHTS)) {
+for (const c of M.pythonCells('The big cat sat on the old mat.', window.LLM_WEIGHTS, { merges: 10 })) {
   if (outText(c.id) !== c.out) fail(`code output for free text / ${c.id} differs from model.js`);
 }
 click(doc.getElementById('pop'));
 if (doc.getElementById('text').value !== 'The big cat sat on the old mat') fail('remove last word did not remove the final piece');
+
+// BPE: unknown words still get subword tokens, and the merge count is adjustable.
+if (doc.querySelectorAll('#subwords .subword').length !== 8) fail('BPE did not split every word of the free text');
+const slider = doc.getElementById('merges');
+slider.value = '0';
+slider.dispatchEvent(new window.Event('input'));
+if (doc.querySelectorAll('#t-merges tr').length !== 1) fail('with 0 merges the merge table should be empty');
+if (outText('bpe') !== M.pythonCells('The big cat sat on the old mat', window.LLM_WEIGHTS, { merges: 0 }).find(c => c.id === 'bpe').out) fail('BPE code output differs from model.js');
+slider.value = '10';
+slider.dispatchEvent(new window.Event('input'));
 
 // No known words: steps 3–5 are hidden and nothing throws.
 type('hello world');

@@ -9,6 +9,7 @@ A sentence is split into tokens, each token is looked up in an embedding table, 
 ## What the page shows
 
 - **Tokens.** Build a sentence from the vocabulary, or type your own text, and see each word's token id. Words outside the vocabulary are shown crossed out and skipped.
+- **Subword tokens (byte pair encoding).** A side step that learns merges from the training sentences plus your text, step by step, and splits your text into subword tokens the way real tokenizers do. Adjustable number of merges.
 - **Embeddings.** An editable embedding table with readable columns (animal, place, action, grammar), and the cosine similarity between every pair of words.
 - **Position.** The sinusoidal position encoding, and how it makes two copies of the same word different.
 - **Self-attention.** Editable query, key and value matrices, the causal attention weights, and the full calculation for any word.
@@ -33,7 +34,7 @@ python python/llm_numpy.py
 | `weights.js` | Default weights. **Generated** by `tools/train_weights.py` |
 | `python/llm_numpy.py` | The page's NumPy code for the default sentence. **Generated** by `tools/generate_python.js` |
 | `tests/page_smoke.js` | Loads the page headlessly (jsdom) and clicks through every control |
-| `tests/dump_states.js`, `tests/check_outputs.py` | Run the page's NumPy code in 90 states in real NumPy and fail on any difference |
+| `tests/dump_states.js`, `tests/check_outputs.py` | Run the page's NumPy code in 99 states in real NumPy and fail on any difference |
 
 ```bash
 npm ci

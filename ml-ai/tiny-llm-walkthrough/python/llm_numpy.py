@@ -15,6 +15,50 @@ def show(matrix, labels):
     for label, row in zip(labels, matrix):
         print(f"{label:>5} " + " ".join(f"{v:7.3f}" for v in row))
 
+# Byte pair encoding: learn merges by counting pairs, then split the text with them.
+# Real tokenizers start from the 256 byte values; letters are used here so the pieces stay readable.
+corpus = ["the cat sat on the mat .", "the dog sat on the mat .", "the cat ran on the mat .", "the dog ran on the mat ."] + [text]
+corpus_words = [p for line in corpus for p in re.findall(r"[a-z]+|[^sa-z]", line.lower())]
+
+def merge(word, a, b):
+    out, i = [], 0
+    while i < len(word):
+        if i + 1 < len(word) and word[i] == a and word[i + 1] == b:
+            out.append(a + b)
+            i += 2
+        else:
+            out.append(word[i])
+            i += 1
+    return out
+
+def bpe_train(words, num_merges):
+    words = [list(w) for w in words]
+    merges = []
+    for _ in range(num_merges):
+        counts = {}
+        for w in words:
+            for pair in zip(w, w[1:]):
+                counts[pair] = counts.get(pair, 0) + 1
+        if not counts:
+            break
+        (a, b), count = max(counts.items(), key=lambda kv: kv[1])   # ties: the pair seen first
+        merges.append((a, b, count))
+        words = [merge(w, a, b) for w in words]
+    return merges
+
+def bpe_encode(word, merges):
+    parts = list(word)
+    for a, b, _ in merges:
+        parts = merge(parts, a, b)
+    return parts
+
+merges = bpe_train(corpus_words, 10)
+for k, (a, b, count) in enumerate(merges, 1):
+    print(f"{k:>2}. {a} + {b} -> {a + b}  ({count}x)")
+subwords = [bpe_encode(p, merges) for p in pieces]
+print(" ".join("+".join(parts) for parts in subwords))
+print(f"{sum(map(len, pieces))} characters -> {sum(map(len, subwords))} tokens")
+
 # Embedding table: one row per token. Columns: animal, place, action, grammar
 E = np.array([
     [0.0, 0.0, 0.0, 1.0],  # the

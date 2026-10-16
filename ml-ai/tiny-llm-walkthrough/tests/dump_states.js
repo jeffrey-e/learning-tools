@@ -11,8 +11,10 @@ const TEXTS = [
   'the', 'the cat', 'the cat sat on the', 'the dog ran on the mat .', 'mat mat mat', 'on the cat',
   // Free text: capitals, punctuation, unknown words, quotes and backslashes in the repr, nothing known at all
   'The big CAT sat on the old mat. Then the dog ran!', "the cat's \"mat\" \\ on", 'Hello, world?', '',
+  'naïve café 🙂 cats + matter',
 ];
 const TEMPS = [0.5, 1, 5];
+const MERGES = [0, 3, 10, 40];   // cycled across states; 40 runs out of pairs on short texts
 
 // Weight variants: the defaults, plus the kinds of edits a user can make on the page.
 function variants() {
@@ -33,7 +35,7 @@ for (const [name, w] of Object.entries(variants())) {
       const r = ids.length ? M.run(ids, w, temperature) : null;
       states.push({
         name: `${name} | ${JSON.stringify(text)} | T=${temperature}`,
-        cells: M.pythonCells(text, w, temperature),
+        cells: M.pythonCells(text, w, { temperature, merges: MERGES[states.length % MERGES.length] }),
         arrays: r ? { X: r.X, A: r.A, H: r.H, logits: r.logits, p: r.probs } : {},
       });
     }

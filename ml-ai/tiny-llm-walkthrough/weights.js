@@ -2,6 +2,7 @@
 // Embeddings are hand-set; the attention matrices were trained on a four-sentence corpus.
 globalThis.LLM_WEIGHTS = {"vocab": ["the", "cat", "dog", "sat", "ran", "on", "mat", "."],
   "dims": ["animal", "place", "action", "grammar"],
+  "corpus": ["the cat sat on the mat .", "the dog sat on the mat .", "the cat ran on the mat .", "the dog ran on the mat ."],
   "E": [[0.0, 0.0, 0.0, 1.0],
     [1.0, 0.0, 0.1, 0.0],
     [0.9, 0.0, 0.3, 0.0],

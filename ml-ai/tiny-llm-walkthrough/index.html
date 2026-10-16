@@ -17,6 +17,14 @@
 .field{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
 .field input{font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;box-sizing:border-box}
 .field input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.subwords{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.subword{display:inline-flex;gap:2px}
+.subword span{font-family:var(--f-mono);font-size:14px;padding:4px 7px;border-radius:6px;background:var(--p-learn);color:var(--p-learn-fg)}
+.subword span:nth-child(even){background:var(--accent-soft);color:var(--accent)}
+.slider{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.slider input{accent-color:var(--accent);width:min(260px,60vw)}
+.slider output{font-family:var(--f-mono);color:var(--fg);min-width:2ch}
+.mt td.pair{min-width:0;padding:0 8px;text-align:left;white-space:nowrap}
 .mt td.name{min-width:48px;font-family:var(--f-mono);font-size:12px}
 .mt td.masked{color:var(--faint)}
 .mt tr.focus td.name{color:var(--accent)}
@@ -73,6 +81,21 @@
         <div class="row"><button id="pop">Remove last word</button></div>
       </div>
       <details class="py" data-cell="tokens"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s1b">
+    <h2 id="s1b"><span class="no">1b</span>Subword tokens: byte pair encoding <span class="tag t-learn">Learned</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">How does a real tokenizer get its vocabulary? Byte pair encoding starts from single characters (real ones start from the 256 byte values, so nothing is ever unknown). It counts every pair of neighbours in a large body of text, merges the most frequent pair into a new token, and repeats, tens of thousands of times. Frequent words end up as one token; rare words are split into frequent pieces. The vocabulary is learned from data, but by counting, not by training.</p>
+        <p class="note">Here the merges are learned from the four training sentences plus your text, and then used to split your text. Words this model skips in step 1 still get tokens here. This step is a side view: the model below keeps its 8 whole-word tokens.</p>
+        <label class="slider">Merges <input id="merges" type="range" min="0" max="40" step="1"><output id="merges-out" for="merges"></output></label>
+        <div class="subwords" id="subwords" aria-label="Your text split into subword tokens"></div>
+        <p class="math" id="bpe-count"></p>
+        <div class="scroll"><table class="mt" id="t-merges"></table></div>
+      </div>
+      <details class="py" data-cell="bpe"></details>
     </div>
   </section>
 
@@ -159,7 +182,7 @@
   const clone = w => JSON.parse(JSON.stringify(w));   // the weights are plain JSON
 
   // text is the source of truth; tokens are derived from it on every render.
-  const state = { text: 'the cat sat on the', temperature: 1, w: clone(DEFAULTS), sel: null };
+  const state = { text: 'the cat sat on the', temperature: 1, merges: 10, w: clone(DEFAULTS), sel: null };
 
   // ---- Small DOM helpers ----
   function el(tag, attrs = {}, ...kids) {
@@ -249,11 +272,26 @@
     $('unknown-note').hidden = unknown.length === 0;
     $('empty-note').hidden = n > 0;
 
+    // 1b. Byte pair encoding
+    const b = M.bpe(text, w.corpus, state.merges);
+    $('merges').value = String(state.merges);
+    $('merges-out').textContent = b.merges.length < state.merges ? `${b.merges.length} (no pairs left)` : String(state.merges);
+    $('subwords').replaceChildren(...b.tokens.map((parts, k) => el('span', { class: 'subword', 'aria-label': `${b.pieces[k]}: ${parts.join(', ')}` }, ...parts.map(t => el('span', {}, t)))));
+    $('bpe-count').textContent = `${b.chars} characters → ${b.count} tokens` + (b.count ? ` (${(b.chars / b.count).toFixed(1)} characters per token)` : '');
+    $('t-merges').replaceChildren(
+      el('tr', {}, el('th', { scope: 'col' }, '#'), el('th', { scope: 'col' }, 'pair'), el('th', { scope: 'col' }, 'new token'), el('th', { scope: 'col' }, 'count')),
+      ...b.merges.map((m, k) => el('tr', {},
+        el('td', { class: 'zero' }, String(k + 1)),
+        el('td', { class: 'pair zero' }, `${m.a} + ${m.b}`),
+        el('td', { class: 'pair pos' }, m.a + m.b),
+        el('td', { class: 'zero' }, `${m.count}×`))),
+    );
+
     // 2. Embeddings
     matrixTable($('t-E'), w.E, { rowLabels: w.vocab, colLabels: w.dims, editable: true, focus: ids });
     matrixTable($('t-sim'), M.cosine(w.E), { rowLabels: w.vocab, colLabels: w.vocab });
 
-    cells = M.pythonCells(text, w, temperature);
+    cells = M.pythonCells(text, w, { temperature, merges: state.merges });
     renderCode(cells);
 
     // Steps 3–5 need at least one token
@@ -313,6 +351,7 @@
   $('temps').append(...TEMPS.map(t => el('button', { 'data-t': String(t), onclick: () => { state.temperature = t; render(); } }, String(t))));
   $('vocab').append(...DEFAULTS.vocab.map(t => el('button', { onclick: () => append(t) }, '+ ' + t)));
   $('text').addEventListener('input', e => setText(e.target.value));
+  $('merges').addEventListener('input', e => { state.merges = Number(e.target.value); render(); });
   $('pop').addEventListener('click', () => setText(withoutLastPiece(state.text)));
   $('add-top').addEventListener('click', () => append(state.ranked[0].word));
   $('sample').addEventListener('click', () => {

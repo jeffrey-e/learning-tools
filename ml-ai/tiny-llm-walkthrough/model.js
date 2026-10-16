@@ -38,12 +38,60 @@
 
   // Free text to tokens: lowercase, then split into words (runs of a–z) and single punctuation marks.
   // Pieces in the vocabulary become tokens; the rest are reported as unknown and skipped.
-  // Same rule as the generated Python: re.findall(r"[a-z]+|[^\sa-z]", text.lower()).
-  const PIECE = /[a-z]+|[^\sa-z]/g;
+  // Same rule as the generated Python: re.findall(r"[a-z]+|[^\sa-z]", text.lower()). The u flag makes
+  // JavaScript match whole code points (an emoji is one piece), as Python does.
+  const PIECE = /[a-z]+|[^\sa-z]/gu;
   function tokenize(text, vocab) {
     const pieces = text.toLowerCase().match(PIECE) || [];
     const words = pieces.filter(p => vocab.includes(p));
     return { pieces, words, ids: words.map(p => vocab.indexOf(p)), unknown: pieces.filter(p => !vocab.includes(p)) };
+  }
+
+  // ---- Byte pair encoding: how real tokenizers build a subword vocabulary ----
+  // Merges every non-overlapping a+b in a word (a list of strings), left to right.
+  function mergePair(word, a, b) {
+    const out = [];
+    for (let i = 0; i < word.length; i++) {
+      if (i + 1 < word.length && word[i] === a && word[i + 1] === b) { out.push(a + b); i++; }
+      else out.push(word[i]);
+    }
+    return out;
+  }
+
+  // Learns up to numMerges merges from a list of words, starting from single characters.
+  // Each step merges the most frequent neighbouring pair; ties go to the pair seen first
+  // (Map and Python's dict both keep insertion order, and both pick the first maximum).
+  function bpeTrain(words, numMerges) {
+    let split = words.map(w => [...w]);
+    const merges = [];
+    for (let k = 0; k < numMerges; k++) {
+      const counts = new Map();
+      for (const w of split) {
+        for (let i = 0; i + 1 < w.length; i++) {
+          const key = JSON.stringify([w[i], w[i + 1]]);
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+      }
+      if (!counts.size) break;   // every word is a single token already
+      let best = null, count = 0;
+      for (const [key, c] of counts) if (c > count) { best = key; count = c; }
+      const [a, b] = JSON.parse(best);
+      merges.push({ a, b, count });
+      split = split.map(w => mergePair(w, a, b));
+    }
+    return merges;
+  }
+
+  // Splits one word into subword tokens by replaying the learned merges in order.
+  const bpeEncode = (word, merges) => merges.reduce((parts, m) => mergePair(parts, m.a, m.b), [...word]);
+
+  // The BPE step of the page: train on the corpus plus the user's text, then split the user's text.
+  function bpe(text, corpus, numMerges) {
+    const pieces = text.toLowerCase().match(PIECE) || [];
+    const corpusWords = [...corpus, text].flatMap(line => line.toLowerCase().match(PIECE) || []);
+    const merges = bpeTrain(corpusWords, numMerges);
+    const tokens = pieces.map(p => bpeEncode(p, merges));
+    return { pieces, merges, tokens, chars: pieces.reduce((s, p) => s + [...p].length, 0), count: tokens.reduce((s, t) => s + t.length, 0) };
   }
 
   // Cosine similarity between every pair of embedding rows (NaN for an all-zero row, as in NumPy).
@@ -82,9 +130,10 @@
   const pyRepr = s => (s.includes("'") && !s.includes('"') ? `"${s.replace(/\\/g, '\\\\')}"` : `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`);
 
   // The NumPy version of the page, one cell per section, each with the exact output it prints.
-  // With no known words there is nothing to run, so only the tokens and embeddings cells are returned.
-  function pythonCells(text, w, temperature = 1) {
+  // With no known words there is nothing to run, so only the tokens, BPE and embeddings cells are returned.
+  function pythonCells(text, w, { temperature = 1, merges = 10 } = {}) {
     const { words, ids, unknown } = tokenize(text, w.vocab);
+    const b = bpe(text, w.corpus, merges);
     const vocabLit = '[' + w.vocab.map(t => JSON.stringify(t)).join(', ') + ']';
     const cells = [
       {
@@ -106,6 +155,59 @@
           '        print(f"{label:>5} " + " ".join(f"{v:7.3f}" for v in row))',
         ].join('\n'),
         out: '[' + ids.join(', ') + ']\nnot in vocabulary: [' + unknown.map(pyRepr).join(', ') + ']',
+      },
+      {
+        id: 'bpe',
+        code: [
+          '# Byte pair encoding: learn merges by counting pairs, then split the text with them.',
+          '# Real tokenizers start from the 256 byte values; letters are used here so the pieces stay readable.',
+          `corpus = [${w.corpus.map(c => JSON.stringify(c)).join(', ')}] + [text]`,
+          'corpus_words = [p for line in corpus for p in re.findall(r"[a-z]+|[^\sa-z]", line.lower())]',
+          '',
+          'def merge(word, a, b):',
+          '    out, i = [], 0',
+          '    while i < len(word):',
+          '        if i + 1 < len(word) and word[i] == a and word[i + 1] == b:',
+          '            out.append(a + b)',
+          '            i += 2',
+          '        else:',
+          '            out.append(word[i])',
+          '            i += 1',
+          '    return out',
+          '',
+          'def bpe_train(words, num_merges):',
+          '    words = [list(w) for w in words]',
+          '    merges = []',
+          '    for _ in range(num_merges):',
+          '        counts = {}',
+          '        for w in words:',
+          '            for pair in zip(w, w[1:]):',
+          '                counts[pair] = counts.get(pair, 0) + 1',
+          '        if not counts:',
+          '            break',
+          '        (a, b), count = max(counts.items(), key=lambda kv: kv[1])   # ties: the pair seen first',
+          '        merges.append((a, b, count))',
+          '        words = [merge(w, a, b) for w in words]',
+          '    return merges',
+          '',
+          'def bpe_encode(word, merges):',
+          '    parts = list(word)',
+          '    for a, b, _ in merges:',
+          '        parts = merge(parts, a, b)',
+          '    return parts',
+          '',
+          `merges = bpe_train(corpus_words, ${merges})`,
+          'for k, (a, b, count) in enumerate(merges, 1):',
+          '    print(f"{k:>2}. {a} + {b} -> {a + b}  ({count}x)")',
+          'subwords = [bpe_encode(p, merges) for p in pieces]',
+          'print(" ".join("+".join(parts) for parts in subwords))',
+          'print(f"{sum(map(len, pieces))} characters -> {sum(map(len, subwords))} tokens")',
+        ].join('\n'),
+        out: [
+          ...b.merges.map((m, k) => `${String(k + 1).padStart(2)}. ${m.a} + ${m.b} -> ${m.a + m.b}  (${m.count}x)`),
+          b.tokens.map(t => t.join('+')).join(' '),
+          `${b.chars} characters -> ${b.count} tokens`,
+        ].join('\n'),
       },
       {
         id: 'embeddings',
@@ -182,5 +284,5 @@
     '# Tiny LLM walkthrough: one forward pass of a single-head transformer, in NumPy.\n\n' +
     cells.map(c => c.code).join('\n\n') + '\n';
 
-  return { matmul, transpose, softmax, positional, tokenize, PIECE, cosine, run, ranked, pythonCells, fullScript, pyFloat };
+  return { matmul, transpose, softmax, positional, tokenize, PIECE, bpe, bpeTrain, bpeEncode, cosine, run, ranked, pythonCells, fullScript, pyFloat };
 });
