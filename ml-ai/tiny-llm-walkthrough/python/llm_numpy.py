@@ -1,12 +1,15 @@
 # Tiny LLM walkthrough: one forward pass of a single-head transformer, in NumPy.
 
+import re
 import numpy as np
 
 vocab = ["the", "cat", "dog", "sat", "ran", "on", "mat", "."]
 text = "the cat sat on the"
-words = text.split()
-ids = [vocab.index(word) for word in words]
+pieces = re.findall(r"[a-z]+|[^\sa-z]", text.lower())   # words and punctuation marks
+words = [p for p in pieces if p in vocab]
+ids = [vocab.index(p) for p in words]
 print(ids)
+print("not in vocabulary:", [p for p in pieces if p not in vocab])
 
 def show(matrix, labels):
     for label, row in zip(labels, matrix):

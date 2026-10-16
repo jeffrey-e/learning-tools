@@ -4,7 +4,7 @@ Guidance for Claude Code working on the Tiny LLM walkthrough. See also the repos
 
 ## What this is
 
-A teaching page that walks a sentence through a tiny decoder-only transformer: tokens (8-word vocabulary), embeddings (4 dimensions), sinusoidal position encoding, one causal self-attention head, a residual connection, tied output embeddings, softmax with temperature, and generation. Lives in `ml-ai/tiny-llm-walkthrough/` and is served by GitHub Pages from the `main` branch. There is no build step.
+A teaching page that walks a sentence through a tiny decoder-only transformer: tokens (8-word vocabulary; free text is lowercased and split into words and punctuation, unknown pieces are skipped), embeddings (4 dimensions), sinusoidal position encoding, one causal self-attention head, a residual connection, tied output embeddings, softmax with temperature, and generation. Lives in `ml-ai/tiny-llm-walkthrough/` and is served by GitHub Pages from the `main` branch. There is no build step.
 
 ## Layout
 
@@ -12,7 +12,7 @@ A teaching page that walks a sentence through a tiny decoder-only transformer: t
 - `model.js`: all maths (`run`, `positional`, `cosine`, `tokenize`) and the NumPy code generator (`pythonCells`, `fullScript`). Pure functions, loadable in the browser (`TinyLLM` global) and in Node (`require`). Keep DOM code out of it.
 - `weights.js`: **generated** by `tools/train_weights.py`. Don't edit by hand.
 - `python/llm_numpy.py`: **generated** by `tools/generate_python.js`. Don't edit by hand.
-- `tests/`: `page_smoke.js` (jsdom, clicks through the page), `dump_states.js` + `check_outputs.py` (runs the generated NumPy in 54 states and compares printed output exactly and arrays to 1e-9).
+- `tests/`: `page_smoke.js` (jsdom, clicks through the page), `dump_states.js` + `check_outputs.py` (runs the generated NumPy in 90 states and compares printed output exactly and arrays to 1e-9).
 
 ## Commands
 

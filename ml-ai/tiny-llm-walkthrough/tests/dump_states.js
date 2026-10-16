@@ -7,7 +7,11 @@ require('../weights.js');
 const M = require('../model.js');
 
 const DEFAULTS = globalThis.LLM_WEIGHTS;
-const TEXTS = ['the', 'the cat', 'the cat sat on the', 'the dog ran on the mat .', 'mat mat mat', 'on the cat'];
+const TEXTS = [
+  'the', 'the cat', 'the cat sat on the', 'the dog ran on the mat .', 'mat mat mat', 'on the cat',
+  // Free text: capitals, punctuation, unknown words, quotes and backslashes in the repr, nothing known at all
+  'The big CAT sat on the old mat. Then the dog ran!', "the cat's \"mat\" \\ on", 'Hello, world?', '',
+];
 const TEMPS = [0.5, 1, 5];
 
 // Weight variants: the defaults, plus the kinds of edits a user can make on the page.
@@ -26,11 +30,11 @@ for (const [name, w] of Object.entries(variants())) {
   for (const text of TEXTS) {
     for (const temperature of TEMPS) {
       const ids = M.tokenize(text, w.vocab).ids;
-      const r = M.run(ids, w, temperature);
+      const r = ids.length ? M.run(ids, w, temperature) : null;
       states.push({
-        name: `${name} | "${text}" | T=${temperature}`,
+        name: `${name} | ${JSON.stringify(text)} | T=${temperature}`,
         cells: M.pythonCells(text, w, temperature),
-        arrays: { X: r.X, A: r.A, H: r.H, logits: r.logits, p: r.probs },
+        arrays: r ? { X: r.X, A: r.A, H: r.H, logits: r.logits, p: r.probs } : {},
       });
     }
   }

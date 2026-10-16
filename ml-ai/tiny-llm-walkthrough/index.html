@@ -12,6 +12,11 @@
 .chip{display:inline-flex;flex-direction:column;align-items:center;gap:1px;min-width:52px;padding:6px 10px;font-family:var(--f-mono);font-size:14px}
 .chip .id{font-size:11px;color:var(--faint)}
 .chip[aria-pressed="true"] .id{color:var(--accent)}
+.chip.unk{border:1px dashed var(--line);border-radius:8px;color:var(--faint);text-decoration:line-through}
+.chip.unk .id{text-decoration:none}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.field input{font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;box-sizing:border-box}
+.field input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .mt td.name{min-width:48px;font-family:var(--f-mono);font-size:12px}
 .mt td.masked{color:var(--faint)}
 .mt tr.focus td.name{color:var(--accent)}
@@ -59,9 +64,12 @@
     <h2 id="s1"><span class="no">1</span>Text to tokens <span class="tag t-data">Input data</span></h2>
     <div class="split">
       <div class="vis">
-        <p class="note">The model can't read letters. Each word is looked up in a fixed vocabulary and replaced by its number, the token id. Real tokenizers split text into pieces of words (“walk”, “ing”) so that any text fits a vocabulary of around 100,000 pieces. Here every word is one token. Click a word to add it; click a token to inspect it in the attention step.</p>
+        <p class="note">The model can't read letters. Each word is looked up in a fixed vocabulary and replaced by its number, the token id. Real tokenizers split text into pieces of words (“walk”, “ing”) so that any text fits a vocabulary of around 100,000 pieces. Here every word is one token. Click a word to add it, or type your own text; click a token to inspect it in the attention step.</p>
         <div class="row" id="vocab" aria-label="Add a word"></div>
+        <label class="field">Your text (optional)<input id="text" type="text" maxlength="120" autocomplete="off" spellcheck="false"></label>
         <div class="chips" id="chips" aria-label="Tokens"></div>
+        <p class="note" id="unknown-note" hidden>Crossed-out words aren't in this model's 8-word vocabulary, so it skips them: it has no numbers for them. A real tokenizer never skips anything: it breaks an unfamiliar word into smaller pieces it does know, down to single letters or bytes if needed.</p>
+        <p class="err" id="empty-note" hidden>None of these words are in the vocabulary, so there's nothing for the model to work with. Add at least one of the words above.</p>
         <div class="row"><button id="pop">Remove last word</button></div>
       </div>
       <details class="py" data-cell="tokens"></details>
@@ -150,7 +158,8 @@
   const $ = id => document.getElementById(id);
   const clone = w => JSON.parse(JSON.stringify(w));   // the weights are plain JSON
 
-  const state = { words: ['the', 'cat', 'sat', 'on', 'the'], temperature: 1, w: clone(DEFAULTS), sel: null };
+  // text is the source of truth; tokens are derived from it on every render.
+  const state = { text: 'the cat sat on the', temperature: 1, w: clone(DEFAULTS), sel: null };
 
   // ---- Small DOM helpers ----
   function el(tag, attrs = {}, ...kids) {
@@ -197,6 +206,7 @@
   function renderCode(cells) {
     document.querySelectorAll('details.py').forEach(d => {
       const c = cells.find(x => x.id === d.dataset.cell);
+      if (!c) return;   // its section is hidden: no tokens to compute with
       const wasOpen = d.open;
       d.replaceChildren(
         el('summary', { class: 'py-head' }, el('span', { class: 'oc' }), el('span', { class: 'lang' }, 'NumPy')),
@@ -215,26 +225,41 @@
   // ---- Render everything from state ----
   let cells = [];
   function render() {
-    const { w, words, temperature } = state;
-    const ids = words.map(t => w.vocab.indexOf(t));
+    const { w, text, temperature } = state;
+    const { pieces, words, ids, unknown } = M.tokenize(text, w.vocab);
     const n = ids.length;
     if (state.sel === null || state.sel >= n) state.sel = n - 1;
-    const r = M.run(ids, w, temperature);
     const labels = words;
 
-    document.querySelectorAll('#presets button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.text === words.join(' '))));
+    if (document.activeElement !== $('text')) $('text').value = text;
+    document.querySelectorAll('#presets button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.text === text)));
     document.querySelectorAll('#temps button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.t) === temperature)));
 
-    // 1. Tokens
-    $('chips').replaceChildren(...words.map((t, i) => el('button', {
-      class: 'chip', 'aria-pressed': String(i === state.sel), 'aria-label': `${t}, token id ${ids[i]}, position ${i}`,
-      onclick: () => { state.sel = i; render(); },
-    }, t, el('span', { class: 'id' }, `id ${ids[i]}`))));
-    $('pop').disabled = n <= 1;
+    // 1. Tokens: known pieces are clickable tokens, unknown ones are shown crossed out
+    let pos = 0;
+    $('chips').replaceChildren(...pieces.map(t => {
+      if (!w.vocab.includes(t)) return el('span', { class: 'chip unk', title: 'Not in the vocabulary: skipped' }, t, el('span', { class: 'id' }, 'skipped'));
+      const i = pos++;
+      return el('button', {
+        class: 'chip', 'aria-pressed': String(i === state.sel), 'aria-label': `${t}, token id ${ids[i]}, position ${i}`,
+        onclick: () => { state.sel = i; render(); },
+      }, t, el('span', { class: 'id' }, `id ${ids[i]}`));
+    }));
+    $('pop').disabled = pieces.length === 0;
+    $('unknown-note').hidden = unknown.length === 0;
+    $('empty-note').hidden = n > 0;
 
     // 2. Embeddings
     matrixTable($('t-E'), w.E, { rowLabels: w.vocab, colLabels: w.dims, editable: true, focus: ids });
     matrixTable($('t-sim'), M.cosine(w.E), { rowLabels: w.vocab, colLabels: w.vocab });
+
+    cells = M.pythonCells(text, w, temperature);
+    renderCode(cells);
+
+    // Steps 3–5 need at least one token
+    for (const id of ['s3', 's4', 's5']) $(id).closest('section').hidden = n === 0;
+    if (n === 0) return;
+    const r = M.run(ids, w, temperature);
 
     // 3. Position
     const dimIdx = w.dims.map((_, j) => String(j));
@@ -274,22 +299,26 @@
       el('span', { class: 'p' }, (p * 100).toFixed(1) + '%'),
     )));
     state.ranked = ranked;
-
-    cells = M.pythonCells(words.join(' '), w, temperature);
-    renderCode(cells);
   }
 
   // ---- Controls ----
-  function setWords(words) { state.words = words; state.sel = null; render(); }
-  $('presets').append(...PRESETS.map(text => el('button', { 'data-text': text, onclick: () => setWords(text.split(' ')) }, text)));
+  function setText(text) { state.text = text; state.sel = null; render(); }
+  const append = word => setText((state.text.trimEnd() + ' ' + word).trim());
+  // Cuts the text just before its last piece (word or punctuation mark), keeping the user's own spelling.
+  function withoutLastPiece(text) {
+    const matches = [...text.toLowerCase().matchAll(M.PIECE)];
+    return matches.length ? text.slice(0, matches[matches.length - 1].index).trimEnd() : '';
+  }
+  $('presets').append(...PRESETS.map(text => el('button', { 'data-text': text, onclick: () => setText(text) }, text)));
   $('temps').append(...TEMPS.map(t => el('button', { 'data-t': String(t), onclick: () => { state.temperature = t; render(); } }, String(t))));
-  $('vocab').append(...DEFAULTS.vocab.map(t => el('button', { onclick: () => setWords([...state.words, t]) }, '+ ' + t)));
-  $('pop').addEventListener('click', () => setWords(state.words.slice(0, -1)));
-  $('add-top').addEventListener('click', () => setWords([...state.words, state.ranked[0].word]));
+  $('vocab').append(...DEFAULTS.vocab.map(t => el('button', { onclick: () => append(t) }, '+ ' + t)));
+  $('text').addEventListener('input', e => setText(e.target.value));
+  $('pop').addEventListener('click', () => setText(withoutLastPiece(state.text)));
+  $('add-top').addEventListener('click', () => append(state.ranked[0].word));
   $('sample').addEventListener('click', () => {
     let u = Math.random();
     const pick = state.ranked.find(t => (u -= t.p) < 0) || state.ranked[state.ranked.length - 1];
-    setWords([...state.words, pick.word]);
+    append(pick.word);
   });
   $('reset').addEventListener('click', () => { state.w = clone(DEFAULTS); render(); });
   $('code-all').addEventListener('click', () => setAllCode(!codeOpen));

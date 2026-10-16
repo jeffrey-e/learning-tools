@@ -36,10 +36,14 @@
     });
   }
 
-  // Splits on spaces and looks each word up in the vocabulary. Unknown words are reported, not guessed.
+  // Free text to tokens: lowercase, then split into words (runs of a–z) and single punctuation marks.
+  // Pieces in the vocabulary become tokens; the rest are reported as unknown and skipped.
+  // Same rule as the generated Python: re.findall(r"[a-z]+|[^\sa-z]", text.lower()).
+  const PIECE = /[a-z]+|[^\sa-z]/g;
   function tokenize(text, vocab) {
-    const words = text.trim().split(/\s+/).filter(Boolean);
-    return { words, ids: words.map(w => vocab.indexOf(w)), unknown: words.filter(w => !vocab.includes(w)) };
+    const pieces = text.toLowerCase().match(PIECE) || [];
+    const words = pieces.filter(p => vocab.includes(p));
+    return { pieces, words, ids: words.map(p => vocab.indexOf(p)), unknown: pieces.filter(p => !vocab.includes(p)) };
   }
 
   // Cosine similarity between every pair of embedding rows (NaN for an all-zero row, as in NumPy).
@@ -74,29 +78,34 @@
     (comment ? `# ${comment}\n` : '') +
     `${name} = np.array([\n` + M.map((r, i) => `    [${r.map(pyNum).join(', ')}],` + (labels ? `  # ${labels[i]}` : '')).join('\n') + '\n])';
   const ranked = (vocab, probs) => vocab.map((word, i) => ({ word, p: probs[i] })).sort((a, b) => b.p - a.p);
+  // Python's repr() of a str, for the strings tokenize() can produce (no control characters).
+  const pyRepr = s => (s.includes("'") && !s.includes('"') ? `"${s.replace(/\\/g, '\\\\')}"` : `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`);
 
   // The NumPy version of the page, one cell per section, each with the exact output it prints.
+  // With no known words there is nothing to run, so only the tokens and embeddings cells are returned.
   function pythonCells(text, w, temperature = 1) {
-    const { words, ids } = tokenize(text, w.vocab);
-    const r = run(ids, w, temperature);
+    const { words, ids, unknown } = tokenize(text, w.vocab);
     const vocabLit = '[' + w.vocab.map(t => JSON.stringify(t)).join(', ') + ']';
-    return [
+    const cells = [
       {
         id: 'tokens',
         code: [
+          'import re',
           'import numpy as np',
           '',
           `vocab = ${vocabLit}`,
-          `text = ${JSON.stringify(words.join(' '))}`,
-          'words = text.split()',
-          'ids = [vocab.index(word) for word in words]',
+          `text = ${JSON.stringify(text)}`,
+          'pieces = re.findall(r"[a-z]+|[^\\sa-z]", text.lower())   # words and punctuation marks',
+          'words = [p for p in pieces if p in vocab]',
+          'ids = [vocab.index(p) for p in words]',
           'print(ids)',
+          'print("not in vocabulary:", [p for p in pieces if p not in vocab])',
           '',
           'def show(matrix, labels):',
           '    for label, row in zip(labels, matrix):',
           '        print(f"{label:>5} " + " ".join(f"{v:7.3f}" for v in row))',
         ].join('\n'),
-        out: '[' + ids.join(', ') + ']',
+        out: '[' + ids.join(', ') + ']\nnot in vocabulary: [' + unknown.map(pyRepr).join(', ') + ']',
       },
       {
         id: 'embeddings',
@@ -108,8 +117,12 @@
           'unit = E / np.linalg.norm(E, axis=1, keepdims=True)',
           'show(unit @ unit.T, vocab)',
         ].join('\n'),
-        out: [...showLines(r.tok, words), ...showLines(cosine(w.E), w.vocab)].join('\n'),
+        out: [...showLines(ids.map(i => w.E[i]), words), ...showLines(cosine(w.E), w.vocab)].join('\n'),
       },
+    ];
+    if (!ids.length) return cells;
+    const r = run(ids, w, temperature);
+    return cells.concat([
       {
         id: 'positions',
         code: [
@@ -162,12 +175,12 @@
         ].join('\n'),
         out: ranked(w.vocab, r.probs).map(t => t.word.padStart(5) + ' ' + pyFloat(t.p)).join('\n'),
       },
-    ];
+    ]);
   }
 
   const fullScript = cells =>
     '# Tiny LLM walkthrough: one forward pass of a single-head transformer, in NumPy.\n\n' +
     cells.map(c => c.code).join('\n\n') + '\n';
 
-  return { matmul, transpose, softmax, positional, tokenize, cosine, run, ranked, pythonCells, fullScript, pyFloat };
+  return { matmul, transpose, softmax, positional, tokenize, PIECE, cosine, run, ranked, pythonCells, fullScript, pyFloat };
 });

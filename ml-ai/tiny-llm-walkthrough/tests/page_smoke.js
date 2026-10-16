@@ -50,5 +50,25 @@ if (doc.querySelectorAll('#chips .chip').length !== 6) fail('add the top word di
 click(doc.getElementById('pop'));
 if (doc.querySelectorAll('#chips .chip').length !== 5) fail('remove last word did not remove a token');
 
+// Free text: unknown words are skipped, the model still runs, and the code matches model.js.
+const type = text => { const t = doc.getElementById('text'); t.value = text; t.dispatchEvent(new window.Event('input')); };
+click(doc.querySelector('#temps button[data-t="1"]'));
+type('The big cat sat on the old mat.');
+if (doc.querySelectorAll('#chips .chip.unk').length !== 2) fail('unknown words were not marked as skipped');
+if (doc.querySelectorAll('#chips button.chip').length !== 7) fail('known words were not turned into tokens');
+if (doc.getElementById('unknown-note').hidden) fail('the unknown-word note is not shown');
+for (const c of M.pythonCells('The big cat sat on the old mat.', window.LLM_WEIGHTS)) {
+  if (outText(c.id) !== c.out) fail(`code output for free text / ${c.id} differs from model.js`);
+}
+click(doc.getElementById('pop'));
+if (doc.getElementById('text').value !== 'The big cat sat on the old mat') fail('remove last word did not remove the final piece');
+
+// No known words: steps 3–5 are hidden and nothing throws.
+type('hello world');
+if (doc.getElementById('empty-note').hidden) fail('the no-known-words message is not shown');
+if (!doc.getElementById('s5').closest('section').hidden) fail('step 5 is shown without any tokens');
+type('the cat');
+if (doc.getElementById('s5').closest('section').hidden) fail('step 5 did not come back');
+
 if (errors.length) fail(errors.join('\n'));
 console.log('page smoke test: passed');
