@@ -1,8 +1,8 @@
 node_modules/
-tests/states.json
+**/tests/states.json
 __pycache__/
 .ipynb_checkpoints/
 .venv/
 cnn-env/
-tools/nbcells.json
+**/tools/nbcells.json
 .DS_Store
