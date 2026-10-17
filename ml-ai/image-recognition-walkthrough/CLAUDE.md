@@ -24,7 +24,7 @@ The pipeline order and the export environment are in `README.md` and `requiremen
 
 ## Invariants: keep these true
 
-- **Printed outputs must match real Keras exactly.** `train.py` predicts one photo at a time and stores 7 significant digits, because the cells predict one photo at a time; batched predictions can flip a rounding.
+- **Printed outputs must match real Keras.** `train.py` predicts one photo at a time and stores 7 significant digits, because the cells predict one photo at a time; batched predictions can flip a rounding. `check_outputs.py` accepts a decimal number that is one off in its last printed digit (x86 with oneDNN and ARM round differently; such cases are listed), never a different whole number or text. It downloads the pretrained files before running cells, so no download message lands in an output.
 - **The test photos are used once.** Choices are made on validation (`experiments.py`, balanced accuracy); `train.py` builds exactly the chosen runs through the same functions.
 - **Sessions never span splits** (author + day), so the test can't contain another shot of a training dog.
 - **Pretrained weights are verified** against the SHA-256 in `tools/pretrained.py` before any tool uses them. The TF.js script tag keeps its `integrity` hash; `page_smoke.js` fails if it doesn't match the pinned npm copy.
