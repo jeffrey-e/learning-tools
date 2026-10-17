@@ -29,7 +29,7 @@ const threshold = () => Number(doc.getElementById('thr-out').textContent);
 const tokSelect = doc.getElementById('tok'), lineSelect = doc.getElementById('preset');
 const tok = () => tokSelect.value;
 const checkCells = what => {
-  for (const c of M.pythonCells(doc.getElementById('text').value, MODELS[tok()], D, { threshold: threshold(), pos: pos() })) {
+  for (const c of M.pythonCells(doc.getElementById('text').value, MODELS[tok()], D, { threshold: threshold(), pos: pos(), batch: doc.getElementById('batch').value })) {
     if (outText(c.id) !== c.out) fail(`code output for ${what} / ${c.id} (${tok()}) differs from model.js`);
   }
 };
@@ -104,6 +104,37 @@ if (!inspected || inspected[1] !== 'legit' || verdict() !== 'Normal') fail('insp
 // The comparison table switches tokenizer.
 click(doc.querySelector('#cmp tbody tr[data-tok="words"]'));
 if (tok() !== 'words') fail('clicking a comparison row did not switch the tokenizer');
+
+// 10. Filter your own lines.
+const { BATCH } = require('./states_config.js');
+const paste = text => { const t = doc.getElementById('batch'); t.value = text; t.dispatchEvent(new window.Event('input')); };
+const metricV = i => Number(doc.querySelectorAll('#b-counts .metric .v')[i].textContent);
+choose(tokSelect, 'chars');
+paste(BATCH);
+if (metricV(0) !== 9 || metricV(1) !== 2) fail(`the batch should have 9 lines and 2 skipped, got ${metricV(0)} and ${metricV(1)}`);
+if (metricV(2) + metricV(3) !== 7) fail('removed + remaining should be the 7 sshd lines');
+const f = M.filterBatch(BATCH, MODELS, { tok: 'chars', threshold: MODELS.chars.threshold, mode: 'selected' });
+const keptMsgs = [...doc.querySelectorAll('#b-kept .item .orig')].map(e => e.textContent);
+const expected = f.items.filter(x => x.scores.chars > MODELS.chars.threshold).map(x => x.msg);
+if (keptMsgs.length !== expected.length || !expected.every(m => keptMsgs.includes(m))) fail('the remaining lines are not the lines scoring above the threshold');
+if (!keptMsgs.includes('Invalid user oracle from 203.0.113.50')) fail('an attack line not in the log was not kept');
+if (keptMsgs.some(m => m.startsWith('Mar 30'))) fail('the sshd prefix was not stripped');
+if (doc.querySelectorAll('#b-kept .vote').length !== 4 * keptMsgs.length) fail('every remaining line needs four vote chips');
+if (doc.getElementById('b-check').hidden) fail('lines from the log should be checked against their labels');
+checkCells('batch');
+const modeTo = v => { const r = doc.querySelector(`input[name="b-mode"][value="${v}"]`); r.checked = true; r.dispatchEvent(new window.Event('change', { bubbles: true })); };
+modeTo('all');
+const allN = metricV(3);
+modeTo('any');
+const anyN = metricV(3);
+if (anyN < allN) fail('"any" must keep at least as many lines as "all"');
+if (!doc.querySelector('.pycell[data-id="batch"]').parentElement.querySelector('.py-note')) fail('the vote modes need the note on the code panel');
+modeTo('selected');
+click(doc.getElementById('b-sample'));
+if (metricV(0) !== 20 || doc.getElementById('b-lists').hidden) fail('the sample did not load 20 lines');
+checkCells('sample batch');
+click(doc.getElementById('b-clear'));
+if (!doc.getElementById('b-lists').hidden || doc.querySelector('.pycell[data-id="batch"]')) fail('clearing did not empty the batch');
 
 // An empty line: the model steps are hidden and nothing throws.
 type('');

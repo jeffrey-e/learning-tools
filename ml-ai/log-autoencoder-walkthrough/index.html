@@ -70,6 +70,17 @@
 .cmp th{padding:0 8px;text-align:right;white-space:normal;vertical-align:bottom;font-size:11px;line-height:1.3}
 .cmp tr.on td{background:var(--accent-soft);color:var(--accent)}
 .cmp tbody tr{cursor:pointer}
+.batch{font-family:var(--f-mono);font-size:12px;line-height:1.5;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;box-sizing:border-box;min-height:180px;resize:vertical;white-space:pre;overflow-x:auto}
+.batch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.radios{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--fg);border:0;margin:0;padding:0}
+.radios legend{font-size:14px;color:var(--muted);padding:0;margin-bottom:4px}
+.radios label{display:inline-flex;gap:6px;align-items:center}
+.radios input{accent-color:var(--accent)}
+.votes{display:inline-flex;gap:3px}
+.vote{font-family:var(--f-mono);font-size:11px;padding:1px 6px;border-radius:5px;background:var(--zero);color:var(--faint)}
+.vote.on{background:var(--neg);color:var(--neg-fg);font-weight:600}
+.item .orig{font-family:var(--f-mono);font-size:13px;color:var(--fg);overflow-wrap:anywhere}
+.item .rawline{font-family:var(--f-mono);font-size:11px;color:var(--faint);overflow-wrap:anywhere}
 .lists h3{font-family:var(--f-display);font-weight:500;font-size:17px;margin:0 0 4px}
 </style>
 </head>
@@ -243,6 +254,30 @@
       <div><h3>What a line-by-line model can't see</h3><p class="note">24.151.103.17 sent about 150 failed passwords for elastic_user_0, and then logged in successfully. Each of those successful logins is a perfectly normal line, so it scores low. Catching this needs context across lines, such as failures per client in the last hour, which is exactly what Elastic's original example models.</p><ul class="items" id="l-brute"></ul></div>
     </div>
   </section>
+
+  <section aria-labelledby="s10">
+    <h2 id="s10"><span class="no">10</span>Filter your own lines <span class="tag t-data">Input data</span> <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Paste lines from an <code>auth.log</code> (whole lines, or just the messages), or load a sample from this log. Each line goes through the model on its own and gets its own score; the score stays attached to that line. Lines at or below the threshold are removed as normal. What remains are your original lines, unchanged: the reconstruction under each one only shows why it was kept. Nothing is uploaded: it all runs in your browser.</p>
+        <textarea id="batch" class="batch" spellcheck="false" autocomplete="off" aria-label="Lines to filter, one per line" placeholder="Apr 20 14:14:29 ip-10-77-20-248 sshd[3964]: Accepted publickey for ubuntu from …&#10;Failed password for invalid user admin from 122.189.198.238 port 43749 ssh2"></textarea>
+        <div class="row"><button id="b-sample">Load a sample</button><button id="b-clear">Clear</button></div>
+        <fieldset class="radios" id="b-mode"><legend>Keep a line when it's flagged by</legend>
+          <label><input type="radio" name="b-mode" value="selected" checked> the selected tokenizer</label>
+          <label><input type="radio" name="b-mode" value="any"> any of the four models</label>
+          <label><input type="radio" name="b-mode" value="all"> all four models</label>
+        </fieldset>
+        <p class="note" id="b-mode-note"></p>
+        <div class="metrics m4" id="b-counts"></div>
+        <p class="math" id="b-check" hidden></p>
+      </div>
+      <details class="py" data-cell="batch"></details>
+    </div>
+    <div class="lists" id="b-lists" hidden>
+      <div><h3>Remaining: predicted anomalous</h3><p class="note">Highest score first. C, M, W and B show which of the four models (characters, masked, words, BPE) flag the line at their own threshold.</p><ul class="items" id="b-kept"></ul><div class="row"><button id="b-copy">Copy remaining lines</button><span class="toast" id="b-toast" aria-live="polite"></span></div></div>
+      <details><summary class="cap" id="b-removed-sum"></summary><ul class="items" id="b-removed"></ul></details>
+    </div>
+  </section>
 </div>
 
 <script src="weights.js"></script>
@@ -255,13 +290,13 @@
   const MODELS = globalThis.AE_WEIGHTS;
   const D = globalThis.AE_DATA;
   const TOKENIZERS = {
-    chars: { name: 'Characters', cw: 9,
+    chars: { name: 'Characters', short: 'C', cw: 9,
       note: 'Characters: every character is a token. Nothing needs special handling, and the model sees everything, including which IP address a line comes from. The cost: it has to guess digits it can\'t predict, such as port numbers.' },
-    masked: { name: 'Masked characters', cw: 9,
+    masked: { name: 'Masked characters', short: 'M', cw: 9,
       note: 'Masked characters: first every IP address becomes <ip> and every other number <num>, then the rest is split into characters. The model no longer has to guess port numbers, but it also can\'t tell a new client\'s IP address from a familiar one.' },
-    words: { name: 'Words', cw: 26,
+    words: { name: 'Words', short: 'W', cw: 26,
       note: 'Words: the message is split into words and punctuation marks, with the same <ip> and <num> placeholders, and spaces only separate. Lines get much shorter, and a word never seen in training becomes <unk>, which in this log already gives most attacks away.' },
-    bpe: { name: 'Subwords (BPE)', cw: 15,
+    bpe: { name: 'Subwords (BPE)', short: 'B', cw: 15,
       note: 'Subwords, by byte pair encoding: starting from characters, the most frequent neighbouring pair in the training lines is merged into a new token, 200 times over. Common words become one token, rare words fall apart into small pieces, and only characters never seen at all are unknown.' },
   };
   const PRESETS = [
@@ -283,7 +318,7 @@
 
   let tok = 'chars';
   try { const t = localStorage.getItem(TOK_KEY); if (t && MODELS[t]) tok = t; } catch (e) { /* storage unavailable: characters */ }
-  const state = { text: PRESETS[0][1], pos: null, tok, threshold: MODELS[tok].threshold, shown: {} };
+  const state = { text: PRESETS[0][1], pos: null, tok, threshold: MODELS[tok].threshold, shown: {}, batch: '', mode: 'selected' };
   const resetShown = () => { state.shown = { flagged: PAGE, legit: PAGE, false: PAGE, missed: PAGE, other: PAGE }; };
   resetShown();
   const model = () => MODELS[state.tok];
@@ -385,10 +420,12 @@
     document.querySelectorAll('details.py').forEach(d => {
       // A panel can hold several cells (data-cell="model embedding")
       const cs = d.dataset.cell.split(' ').map(id => cells.find(x => x.id === id)).filter(Boolean);
-      if (!cs.length) return;   // its section is hidden: nothing to compute with
+      d.hidden = !cs.length;    // nothing to compute with: an empty line, or no pasted lines
+      if (!cs.length) { d.replaceChildren(); return; }
       const wasOpen = d.open;
       const kids = [el('summary', { class: 'py-head' }, el('span', { class: 'oc' }), el('span', { class: 'lang' }, 'TensorFlow / Keras'))];
       for (const c of cs) {
+        if (c.id === 'batch' && state.mode !== 'selected') kids.push(el('p', { class: 'py-note' }, `This code filters with the selected tokenizer only (${TOKENIZERS[state.tok].name}). The vote across the four models is computed on the page, with the same four models.`));
         if (c.train) kids.push(el('p', { class: 'py-note' }, 'Output from the training run that produced these weights. Rerunning takes about half a minute; the numbers can differ slightly between machines.'));
         kids.push(el('div', { class: 'pycell', 'data-id': c.id }, el('pre', { class: 'code' }, c.code), el('pre', { class: 'out' }, c.out)));
       }
@@ -604,7 +641,7 @@
         (unknown.length ? `${unknown.length} token${unknown.length > 1 ? 's' : ''} never seen in training → id 1.` : 'Every token was seen in training.')
       : `No tokens: the line is ${w.L} × padding.`;
 
-    cells = M.pythonCells(state.text, w, D, { threshold: state.threshold, pos });
+    cells = M.pythonCells(state.text, w, D, { threshold: state.threshold, pos, batch: state.batch });
     renderCode(cells);
 
     $('steps').hidden = r.n === 0;
@@ -657,6 +694,56 @@
     renderHist();
     renderCounts();
     renderLists();
+    renderBatch();
+  }
+
+  // ---- 10. Filter a pasted batch: each line keeps its own score; the original lines above the threshold remain ----
+  const LABEL_OF = new Map();
+  for (const r of D.lines) if (!LABEL_OF.has(r[0])) LABEL_OF.set(r[0], r[1]);
+  const MAX_BATCH = 500;
+  let batchResult = { items: [], skipped: [] };
+  function batchItem(x) {
+    const label = LABEL_OF.get(x.msg);
+    const r = M.run(x.msg, model());
+    return el('li', { class: 'item' },
+      el('div', { class: 'meta' },
+        label ? el('span', { class: 'tag ' + (label === 'attack' ? 't-choice' : label === 'legit' ? 't-data' : 't-calc'), title: 'Rule label: this line is in the log' }, label) : el('span', { class: 'tag t-calc', title: 'Not in this log: no label' }, 'unlabelled'),
+        el('span', {}, 'score ', el('span', { class: 'sc' }, fmtScore(x.scores[state.tok]))),
+        el('span', { class: 'votes', 'aria-label': 'Flagged by: ' + (D.tokenizers.filter(t => x.flags[t]).map(t => TOKENIZERS[t].name).join(', ') || 'none') },
+          ...D.tokenizers.map(t => el('span', { class: 'vote' + (x.flags[t] ? ' on' : ''), title: `${TOKENIZERS[t].name}: score ${fmtScore(x.scores[t])}, ${x.flags[t] ? 'flagged' : 'normal'}` }, TOKENIZERS[t].short))),
+        el('button', { onclick: () => { setText(x.msg); $('s3').scrollIntoView?.({ behavior: 'smooth' }); } }, 'Inspect')),
+      el('div', { class: 'orig' }, x.msg),
+      x.raw !== x.msg ? el('div', { class: 'rawline' }, x.raw) : '',
+      el('details', {}, el('summary', { class: 'cap' }, 'Reconstruction'), pairView(r)));
+  }
+  function renderBatch() {
+    const text = M.batchLines(state.batch).slice(0, MAX_BATCH).join('\n');
+    batchResult = M.filterBatch(text, MODELS, { tok: state.tok, threshold: state.threshold, mode: state.mode });
+    const { items, skipped } = batchResult;
+    const kept = items.filter(x => x.kept).sort((a, b) => b.scores[state.tok] - a.scores[state.tok]);
+    const removed = items.filter(x => !x.kept).sort((a, b) => b.scores[state.tok] - a.scores[state.tok]);
+    $('b-mode-note').textContent = state.mode === 'selected'
+      ? `${TOKENIZERS[state.tok].name}, at the threshold from step 9 (${state.threshold}).`
+      : `Each model at its own default threshold. ${state.mode === 'any' ? 'Keeps more lines: one model is enough.' : 'Keeps fewer lines: every model has to agree.'}`;
+    const metric = (k, v, s) => el('div', { class: 'metric' }, el('span', { class: 'k' }, k), el('span', { class: 'v' }, v), el('span', { class: 's' }, s));
+    const total = M.batchLines(state.batch).length;
+    $('b-counts').replaceChildren(
+      metric('Pasted', String(total), total > MAX_BATCH ? `only the first ${MAX_BATCH} are used` : 'non-empty lines'),
+      metric('Skipped', String(skipped.length), 'not from sshd'),
+      metric('Removed', String(removed.length), 'scored as normal'),
+      metric('Remaining', String(kept.length), 'predicted anomalous'),
+    );
+    const known = items.filter(x => LABEL_OF.has(x.msg));
+    const attacks = known.filter(x => LABEL_OF.get(x.msg) === 'attack'), legit = known.filter(x => LABEL_OF.get(x.msg) === 'legit');
+    $('b-check').hidden = !known.length;
+    $('b-check').textContent = known.length
+      ? `${known.length} of these lines are in the log, so they have a rule label: ${attacks.filter(x => x.kept).length} of ${attacks.length} attack lines remain, ${legit.filter(x => !x.kept).length} of ${legit.length} legitimate lines were removed.` +
+        (known.length - attacks.length - legit.length ? ` ${known.length - attacks.length - legit.length} other line${known.length - attacks.length - legit.length > 1 ? 's' : ''} (neither label).` : '')
+      : '';
+    $('b-lists').hidden = !items.length;
+    $('b-kept').replaceChildren(...(kept.length ? kept.map(batchItem) : [el('li', { class: 'note' }, 'No lines remain: every line scored as normal.')]));
+    $('b-removed-sum').textContent = `Removed as normal (${removed.length})`;
+    $('b-removed').replaceChildren(...removed.map(batchItem));
   }
 
   // ---- Controls ----
@@ -675,6 +762,24 @@
   // Logarithmic slider, rounded to 3 significant digits so the threshold stays readable (and prints the same in Python)
   $('thr').addEventListener('input', e => { state.threshold = Math.max(LOG_MIN, Number((10 ** Number(e.target.value)).toPrecision(3))); render(); });
   $('thr-reset').addEventListener('click', () => { state.threshold = model().threshold; render(); });
+  $('batch').addEventListener('input', e => { state.batch = e.target.value; render(); });
+  $('b-mode').addEventListener('change', e => { state.mode = e.target.value; render(); });
+  $('b-clear').addEventListener('click', () => { state.batch = ''; $('batch').value = ''; render(); });
+  $('b-sample').addEventListener('click', () => {
+    // About 20 test lines: legitimate, attack and other, shuffled. Random each time.
+    const pick = (rows, k) => { const a = [...rows]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, k); };
+    const test = D.lines.filter(r => r[2] === 'test');
+    const rows = pick([...pick(test.filter(r => r[1] === 'legit'), 9), ...pick(test.filter(r => r[1] === 'attack'), 9), ...pick(D.lines.filter(r => r[1] === 'other'), 2)], 20);
+    state.batch = rows.map(r => r[0]).join('\n');
+    $('batch').value = state.batch;
+    render();
+  });
+  $('b-copy').addEventListener('click', async () => {
+    const text = batchResult.items.filter(x => x.kept).sort((a, b) => b.scores[state.tok] - a.scores[state.tok]).map(x => x.raw).join('\n');
+    try { await navigator.clipboard.writeText(text); $('b-toast').textContent = 'Copied'; }
+    catch (e) { $('b-toast').textContent = 'Copy failed: select the lines above'; }
+    setTimeout(() => { $('b-toast').textContent = ''; }, 2000);
+  });
   document.querySelectorAll('[data-more]').forEach(b => b.addEventListener('click', () => { state.shown[b.dataset.more] += PAGE; renderLists(); }));
   $('code-all').addEventListener('click', () => setAllCode(!codeOpen));
   $('copy').addEventListener('click', async () => {

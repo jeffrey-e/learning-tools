@@ -14,6 +14,7 @@ An autoencoder (Keras `Embedding` and `Conv1D` layers) is trained only on legiti
 - **Reconstruction and error.** The line and its reconstruction, aligned character by character, with the error per character and the line's score.
 - **Training.** The real training and validation loss curve.
 - **Detection results.** A threshold slider (logarithmic), score distributions, precision and recall, a table comparing the four tokenizers, and lists of flagged lines, legitimate lines after reconstruction, false alarms, missed attacks and a case a line-by-line model can't catch.
+- **Filter your own lines.** Paste lines from any `auth.log` (or load a random sample): each line is scored on its own, lines scored as normal are removed, and the original anomalous lines remain, with a vote across the four tokenizer models and a check against the labels for lines that are in this log.
 - **Real code beside each step.** The matching TensorFlow/Keras code with the exact output it prints.
 
 ## Run it locally

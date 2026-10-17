@@ -7,7 +7,7 @@ const path = require('path');
 require('../weights.js');
 require('../data.js');
 const M = require('../model.js');
-const { DEFAULT_LINE, LINES } = require('./states_config.js');
+const { DEFAULT_LINE, LINES, BATCH } = require('./states_config.js');
 
 const W = globalThis.AE_WEIGHTS, D = globalThis.AE_DATA;
 const fail = msg => { console.error('dump_states failed: ' + msg); process.exit(1); };
@@ -35,7 +35,7 @@ for (const [k, tok] of D.tokenizers.entries()) {
     states.push({
       name: `${tok} | ${JSON.stringify(line.slice(0, 50))} | pos ${pos} | threshold ${threshold}`,
       first: j === 0 ? k : undefined,   // check the split and every score against data.js here
-      cells: M.pythonCells(line, w, D, { threshold, pos }),
+      cells: M.pythonCells(line, w, D, { threshold, pos, batch: j < 2 ? BATCH : '' }),   // the batch cell, at two thresholds
       arrays: r.n ? { bottleneck: r.z, output: r.probs.slice(0, r.n) } : {},
     });
   });

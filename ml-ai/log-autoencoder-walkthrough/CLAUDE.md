@@ -9,7 +9,7 @@ A teaching page for anomaly detection in SSH logs with an autoencoder: Elastic's
 ## Layout
 
 - `index.html`: markup, page-specific CSS (tokens only) and the UI script. Shared styles come from `../../assets/site.css`.
-- `model.js`: the tokenizers (`tokenize`), the forward pass (`run`, `conv1d`, `maxpool`, `upsample`), `RULES`/`label`, `detect`, and the Keras code generator (`pythonCells`, `fullScript`). Every function takes one tokenizer's model (`AE_WEIGHTS[name]`). Loadable in the browser (`LogAE` global) and in Node. Keep DOM code out of it.
+- `model.js`: the tokenizers (`tokenize`), batch filtering for section 10 (`parseLine`, `filterBatch`: each line keeps its own score; the original lines above the threshold remain), the forward pass (`run`, `conv1d`, `maxpool`, `upsample`), `RULES`/`label`, `detect`, and the Keras code generator (`pythonCells`, `fullScript`). Every function takes one tokenizer's model (`AE_WEIGHTS[name]`). Loadable in the browser (`LogAE` global) and in Node. Keep DOM code out of it.
 - `tools/train_model.py`: the real Keras training. **Generates** `weights.js` (all models), `python/weights_<tokenizer>.json` and `data.js` (a score per tokenizer per line). Don't edit those by hand.
 - `python/autoencoder_tf.py`: **generated** by `tools/generate_python.js` (character tokenizer).
 - `tests/`: `page_smoke.js` (jsdom), `dump_states.js` (also checks `model.js` against every score in `data.js`), `check_outputs.py` (runs the Keras cells in real TensorFlow, every tokenizer), `states_config.js` (the lines tested; `DEFAULT_LINE`).
@@ -31,6 +31,7 @@ npm run generate     # after changing model.js
 - **Scores in `data.js` keep 7 significant digits.** The words and masked models score legitimate lines around 0.0001, so rounding would move lines across the threshold. Thresholds have 3 significant digits and are at least 0.0001, so Python and JavaScript print them the same way.
 - **Count characters as code points** (`Array.from` and the `u` flag in JavaScript), as Python does.
 - **Be honest about what's real.** Labels come from rules, not from the model; the page says so, and it shows the false alarms and the brute-force success the model can't see.
+- **The batch filter outputs the original lines,** never reconstructions: a score belongs to the line in the same position. The `batch` cell covers the selected tokenizer only; the any/all vote is computed on the page and the code panel says so.
 - `data/auth.log` stays unmodified, with its attribution in `data/README.md`.
 
 ## Page conventions

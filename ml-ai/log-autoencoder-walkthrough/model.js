@@ -138,6 +138,39 @@
     return { ...g, caught, missed: g.attack[1] - caught, falseAlarms, precision: caught / Math.max(caught + falseAlarms, 1), recall: caught / Math.max(g.attack[1], 1) };
   }
 
+  // ---- Filtering a pasted batch of lines ----
+  // A full auth.log line: keep the message of an sshd line, skip other programs. Anything else is taken as a bare message.
+  const SSHD = /^\w{3} +\d+ [\d:]+ \S+ sshd\[\d+\]: (.*)$/;
+  const OTHER = /^\w{3} +\d+ [\d:]+ \S+ [^\s\[:]+(\[\d+\])?: /;
+  function parseLine(raw) {
+    const m = raw.match(SSHD);
+    if (m) return { msg: m[1] };
+    return OTHER.test(raw) ? { skipped: 'not sshd' } : { msg: raw };
+  }
+  const batchLines = text => text.split(/\r?\n/).filter(l => l.trim() !== '');
+
+  // Scores every message with every model. A line is flagged by a model when its score is above that
+  // model's threshold: the selected model uses `threshold` (the slider), the others their default.
+  // mode: 'selected' keeps what the selected model flags, 'any' what at least one flags, 'all' what all four flag.
+  // A line with no tokens scores 0, as in the Python (an empty mean is guarded there).
+  function filterBatch(text, models, { tok, threshold, mode = 'selected' }) {
+    const items = [], skipped = [];
+    for (const raw of batchLines(text)) {
+      const p = parseLine(raw);
+      if (p.skipped) { skipped.push(raw); continue; }
+      const scores = {}, flags = {};
+      for (const [name, w] of Object.entries(models)) {
+        const r = run(p.msg, w);
+        scores[name] = r.n ? r.score : 0;
+        flags[name] = scores[name] > (name === tok ? threshold : w.threshold);
+      }
+      const votes = Object.values(flags);
+      const kept = mode === 'any' ? votes.some(Boolean) : mode === 'all' ? votes.every(Boolean) : flags[tok];
+      items.push({ raw, msg: p.msg, scores, flags, kept });
+    }
+    return { items, skipped };
+  }
+
   // ---- Python output formatting (must match what the generated code prints) ----
   const pyFixed = (v, d) => (Object.is(v, -0) ? '-' : '') + v.toFixed(d);
   // Python's repr() of a float, for the values the page uses (0.0001 and up: no exponent in either language).
@@ -204,7 +237,7 @@
 
   // The page's TensorFlow/Keras code, one cell per section, each with the exact output it prints.
   // line: the selected or typed message; w: the selected tokenizer's model; pos: the position inspected.
-  function pythonCells(line, w, data, { threshold = w.threshold, pos = 0 } = {}) {
+  function pythonCells(line, w, data, { threshold = w.threshold, pos = 0, batch = '' } = {}) {
     const k = data.tokenizers.indexOf(w.tokenizer);
     const msgs = data.lines.map(r => r[0]);
     const labels = msgs.map(label);
@@ -448,6 +481,43 @@
         ].join('\n'),
       },
     );
+    const raws = batchLines(batch);
+    if (raws.length) {
+      const f = filterBatch(batch, { [w.tokenizer]: w }, { tok: w.tokenizer, threshold, mode: 'selected' });
+      const kept = f.items.filter(x => x.kept).map(x => ({ s: x.scores[w.tokenizer], msg: x.msg }));
+      kept.sort((a, b) => b.s - a.s);
+      cells.push({
+        id: 'batch',
+        code: [
+          '# Filter your own lines: score each one with the model, keep only those it can\'t rebuild',
+          `batch_raw = ${JSON.stringify(raws)}`,
+          String.raw`OTHER = re.compile(r"^\w{3} +\d+ [\d:]+ \S+ [^\s\[:]+(\[\d+\])?: ")   # a line from another program`,
+          '',
+          'def message(line):',
+          '    m = SSHD.match(line)',
+          '    if m:',
+          '        return m.group(1)              # an sshd line: keep only its message',
+          '    return None if OTHER.match(line) else line   # another program: skip; otherwise a bare message',
+          '',
+          'batch = [m for m in map(message, batch_raw) if m is not None]',
+          'Xb = np.array([encode(m) for m in batch])',
+          'Pb = model.predict(Xb, verbose=0)',
+          'pb = np.take_along_axis(Pb, Xb[..., None], axis=2)[..., 0]',
+          'real_b = Xb > 0',
+          'batch_scores = (-np.log(np.maximum(pb, 1e-7)) * real_b).sum(axis=1) / np.maximum(real_b.sum(axis=1), 1)',
+          '',
+          '# Each score belongs to the line in the same position: keep the original line, not the reconstruction',
+          'remaining = [(s, m) for s, m in zip(batch_scores, batch) if s > threshold]',
+          'for s, m in sorted(remaining, key=lambda t: -t[0]):',
+          '    print(f"{s:8.4f}  {m}")',
+          'print(f"{len(remaining)} of {len(batch)} lines remain ({len(batch_raw) - len(batch)} skipped: not sshd)")',
+        ].join('\n'),
+        out: [
+          ...kept.map(x => `${pyFixed(x.s, 4).padStart(8)}  ${x.msg}`),
+          `${kept.length} of ${f.items.length} lines remain (${f.skipped.length} skipped: not sshd)`,
+        ].join('\n'),
+      });
+    }
     return cells;
   }
 
@@ -457,5 +527,5 @@
     '# Run from the project folder (it reads data/auth.log and python/weights_<tokenizer>.json).\n\n' +
     cells.filter(c => !c.train).map(c => c.code).join('\n\n') + '\n';
 
-  return { RULES, label, tokenize, joiner, unpack, encode, conv1d, maxpool, upsample, softmax, run, topk, detect, pythonCells, fullScript, pyFixed };
+  return { RULES, label, parseLine, batchLines, filterBatch, tokenize, joiner, unpack, encode, conv1d, maxpool, upsample, softmax, run, topk, detect, pythonCells, fullScript, pyFixed };
 });
