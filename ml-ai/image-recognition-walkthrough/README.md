@@ -2,7 +2,7 @@
 
 An interactive page about how image recognition works, on a hard case: telling a Siberian Husky from an Alaskan Malamute.
 
-Real photos go through two models: model A, a small CNN learned from scratch on our 261 training photos, and model B, transfer learning on MobileNetV2 pretrained on ImageNet. The page shows a photo as numbers, the first-layer filters and their feature maps, deeper layers, both models' training, every tuning experiment, what each model looks at (class activation maps), its mistakes, and lets you try your own photo. Both models run in the browser with TensorFlow.js.
+Real photos go through two models: model A, a small CNN learned from scratch on our 261 training photos, and model B, transfer learning on MobileNetV2 pretrained on ImageNet. The page shows a photo as numbers, the first-layer filters and their feature maps, deeper layers, both whole models side by side (click any block to see its live output), both models' training, every tuning experiment, what each model looks at (class activation maps), its mistakes, and lets you try your own photo. Both models run in the browser with TensorFlow.js.
 
 **Open it:** https://jeffrey-e.github.io/learning-tools/ml-ai/image-recognition-walkthrough/
 
@@ -10,7 +10,7 @@ Real photos go through two models: model A, a small CNN learned from scratch on 
 
 403 photos from [Wikimedia Commons](https://commons.wikimedia.org/) (CC0, public domain, CC BY, CC BY-SA), 303 huskies and 100 malamutes, resized and padded to 224×224. Every photo's author, licence and Commons page are listed on the page (Credits, under step 1) and in `data/photos.json`.
 
-How the labels were made: 793 candidates from the breed categories and a search (`tools/fetch_commons.py`), photos without any dog dropped by a pretrained model, which did not decide breeds (`tools/first_pass.py`), a visual first pass, and a final human review of every label (`tools/review.html`, `tools/review_server.py`). Photos of one author on one day stay in the same split, so the test set can't contain another shot of a training dog.
+How the labels were made: 793 candidates from the breed categories and a search, photos without any dog dropped by a pretrained model (which did not decide breeds), a visual first pass, and a final human review of every label. The steps are in [docs/pipeline.md](docs/pipeline.md). Photos of one author on one day stay in the same split, so the test set can't contain another shot of a training dog.
 
 ## The models
 
@@ -49,12 +49,4 @@ npm test                    # browser smoke test + every output checked against 
 python python/walkthrough.py
 ```
 
-Rebuilding everything (each step is seeded and deterministic on a CPU):
-
-```bash
-python3 -P tools/prepare_data.py     # after changing data/labels.json
-python3 -P tools/experiments.py      # about 30 minutes
-python3 -P tools/train.py            # about 3 minutes
-.venv-export/bin/python tools/export_tfjs.py   # see requirements-export.txt
-npm run generate
-```
+Rebuilding the data or the models is a multi-step pipeline (about 35 minutes): see [docs/pipeline.md](docs/pipeline.md).

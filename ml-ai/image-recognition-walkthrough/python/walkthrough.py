@@ -45,6 +45,44 @@ p = head.predict(features, verbose=0)[0]
 print(features.shape, "features;", base.count_params(), "pretrained parameters,", head.count_params(), "trained")
 print(f"husky {p[0]:.3f}, malamute {p[1]:.3f}")
 
+# Both models, block by block: the layers grouped the way the page draws them
+import re
+
+def block_name(n):
+    m = re.match(r"block_(\d+)_", n)
+    if m:
+        return "block " + m.group(1)        # MobileNetV2's 17 inverted residual blocks
+    if n.startswith("expanded_conv"):
+        return "block 0"
+    if n in ("Conv1", "bn_Conv1", "Conv1_relu"):
+        return "stem"
+    if n in ("Conv_1", "Conv_1_bn", "out_relu"):
+        return "last conv"
+    m = re.match(r"(conv|bn|relu|pool)(\d+)$", n)
+    if m:
+        return "conv " + m.group(2)         # model A: convolution, (batch norm,) ReLU, pooling
+    if n == "gap" or n.startswith("global_average_pooling"):
+        return "average pooling"
+    return n
+
+def blocks(layers, part):
+    rows = []
+    for layer in layers:
+        if isinstance(layer, keras.layers.InputLayer):
+            continue
+        name, shape = block_name(layer.name), tuple(layer.output.shape)[1:]
+        if rows and rows[-1][0] == name:     # same block: its output is its last layer's
+            rows[-1][1], rows[-1][2] = shape, rows[-1][2] + layer.count_params()
+        else:
+            rows.append([name, shape, layer.count_params(), part])
+    return rows
+
+for title, rows in (("Model A", blocks(scratch.layers, "trained")),
+                    ("Model B", blocks(base.layers, "frozen") + blocks(head.layers, "trained"))):
+    print(title)
+    for name, shape, params, part in rows:
+        print(f"{name:>16} {str(shape):>16} {params:>10,}  {part}")
+
 # The original model with its own last layer: 1000 ImageNet classes, including both breeds
 full = keras.applications.MobileNetV2(weights="imagenet")
 top = keras.applications.mobilenet_v2.decode_predictions(full.predict(prep(x.copy()), verbose=0), top=3)[0]

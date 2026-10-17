@@ -11,6 +11,7 @@
 
   const pyFixed = (v, d) => (Object.is(v, -0) ? '-' : '') + v.toFixed(d);
   const pyNum = v => (Number.isInteger(v) ? v.toFixed(1) : String(v));
+  const pyTuple = xs => '(' + xs.join(', ') + (xs.length === 1 ? ',' : '') + ')';
 
   // Model A's layers for a configuration (same as tools/experiments.py)
   function scratchCode(cfg) {
@@ -108,6 +109,50 @@
           'print(f"husky {p[0]:.3f}, malamute {p[1]:.3f}")',
         ].join('\n'),
         out: `(1, 1280) features; ${data.params.base} pretrained parameters, ${data.params.head} trained\n${probs(photo.pb)}`,
+      },
+      {
+        id: 'arch',
+        code: [
+          '# Both models, block by block: the layers grouped the way the page draws them',
+          'import re',
+          '',
+          'def block_name(n):',
+          '    m = re.match(r"block_(\\d+)_", n)',
+          '    if m:',
+          '        return "block " + m.group(1)        # MobileNetV2\'s 17 inverted residual blocks',
+          '    if n.startswith("expanded_conv"):',
+          '        return "block 0"',
+          '    if n in ("Conv1", "bn_Conv1", "Conv1_relu"):',
+          '        return "stem"',
+          '    if n in ("Conv_1", "Conv_1_bn", "out_relu"):',
+          '        return "last conv"',
+          '    m = re.match(r"(conv|bn|relu|pool)(\\d+)$", n)',
+          '    if m:',
+          '        return "conv " + m.group(2)         # model A: convolution, (batch norm,) ReLU, pooling',
+          '    if n == "gap" or n.startswith("global_average_pooling"):',
+          '        return "average pooling"',
+          '    return n',
+          '',
+          'def blocks(layers, part):',
+          '    rows = []',
+          '    for layer in layers:',
+          '        if isinstance(layer, keras.layers.InputLayer):',
+          '            continue',
+          '        name, shape = block_name(layer.name), tuple(layer.output.shape)[1:]',
+          '        if rows and rows[-1][0] == name:     # same block: its output is its last layer\'s',
+          '            rows[-1][1], rows[-1][2] = shape, rows[-1][2] + layer.count_params()',
+          '        else:',
+          '            rows.append([name, shape, layer.count_params(), part])',
+          '    return rows',
+          '',
+          'for title, rows in (("Model A", blocks(scratch.layers, "trained")),',
+          '                    ("Model B", blocks(base.layers, "frozen") + blocks(head.layers, "trained"))):',
+          '    print(title)',
+          '    for name, shape, params, part in rows:',
+          '        print(f"{name:>16} {str(shape):>16} {params:>10,}  {part}")',
+        ].join('\n'),
+        out: [['Model A', data.arch.scratch], ['Model B', data.arch.transfer]].flatMap(([title, rows]) => [title, ...rows.map(([name, shape, params, part]) =>
+          `${name.padStart(16)} ${pyTuple(shape).padStart(16)} ${params.toLocaleString('en-US').padStart(10)}  ${part}`)]).join('\n'),
       },
       {
         id: 'imagenet',

@@ -51,6 +51,21 @@
 .credits{font-size:13px;color:var(--muted);max-height:420px;overflow:auto;margin:0;padding-left:18px}
 .credits li{margin-bottom:4px;overflow-wrap:anywhere}
 #pred-a .metric .v,#pred-b .metric .v{font-size:18px;overflow-wrap:anywhere}
+.archs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;align-items:start}
+.arch{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.arch button{width:100%;display:grid;grid-template-columns:96px minmax(0,1fr) 112px;gap:8px;align-items:center;text-align:left;padding:4px 8px;border-radius:6px;font-size:13px;background:var(--zero);border:1px solid transparent}
+.arch button.trained{background:var(--p-learn);color:var(--p-learn-fg)}
+.arch button.input{background:var(--p-data);color:var(--p-data-fg)}
+.arch button.none{background:transparent;border:1px dashed var(--line)}
+.arch button[aria-pressed="true"]{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:-1px}
+.arch .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arch .sh{font-family:var(--f-mono);font-size:11px;color:var(--muted);text-align:right;white-space:nowrap}
+.arch .bars{display:flex;flex-direction:column;gap:2px}
+.arch .bars i{display:block;height:5px;border-radius:3px;min-width:2px}
+.arch .bars i.sz{background:var(--accent)} .arch .bars i.ch{background:var(--p-choice-fg)}
+.arch-detail{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.arch-detail h3{margin:0}
+.feat{display:block;width:100%;height:60px;image-rendering:pixelated;border-bottom:1px solid var(--line)}
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
 </style>
 </head>
@@ -80,7 +95,7 @@
     <p class="note">Every number below has one of four origins. Each stage is tagged with the same labels.</p>
     <div class="sources">
       <div class="src"><span class="tag t-data">Input data</span><span>The photos and their labels.</span><span class="ex" id="src-data"></span></div>
-      <div class="src"><span class="tag t-choice">Design choice</span><span>Decided by people: which photos count, the split, the layers, every training setting.</span><span class="ex">Here: chosen in experiments on the validation photos (step 6).</span></div>
+      <div class="src"><span class="tag t-choice">Design choice</span><span>Decided by people: which photos count, the split, the layers, every training setting.</span><span class="ex">Here: chosen in experiments on the validation photos (step 7).</span></div>
       <div class="src"><span class="tag t-learn">Learned</span><span>Filter weights, learned by gradient descent.</span><span class="ex" id="src-learn"></span></div>
       <div class="src"><span class="tag t-calc">Computed</span><span>Produced while one photo passes through a model, then thrown away.</span><span class="ex">Here: feature maps, features, probabilities and the heatmaps.</span></div>
     </div>
@@ -138,8 +153,24 @@
     </div>
   </section>
 
+  <section aria-labelledby="s4b">
+    <h2 id="s4b"><span class="no">5</span>The whole model at a glance <span class="tag t-learn">Learned</span> <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Both models from photo to answer, block by block, on the same scales. Each block's output is drawn as two bars: <b>size</b> (how many pixels wide its maps are) and <b>channels</b> (how many maps). Watch the funnel: the size shrinks from 224 to 7 while the channels grow from 3 to 1280, trading <i>where</i> for <i>what</i>. Model A is 4 convolution blocks, all trained on our photos. Model B is MobileNetV2's 19 blocks, frozen as they came from ImageNet, plus a small trained head. Click any block to see what it does and its real output for the selected photo.</p>
+        <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>size</span><span><i class="sw" style="background:var(--p-choice-fg)"></i>channels</span><span><i class="sw" style="background:var(--p-learn)"></i>trained on our photos</span><span><i class="sw" style="background:var(--zero)"></i>frozen (from ImageNet)</span><span><i class="sw" style="background:transparent;border-style:dashed"></i>no weights</span></div>
+        <div class="archs">
+          <div class="vis"><h3 class="sub-h">Model A, from scratch</h3><ol class="arch" id="arch-a" aria-label="Model A, block by block"></ol><p class="cap" id="arch-a-sum"></p></div>
+          <div class="vis"><h3 class="sub-h">Model B, transfer learning</h3><ol class="arch" id="arch-b" aria-label="Model B, block by block"></ol><p class="cap" id="arch-b-sum"></p></div>
+        </div>
+        <div class="arch-detail" id="arch-detail" aria-live="polite"></div>
+      </div>
+      <details class="py" data-cell="arch"></details>
+    </div>
+  </section>
+
   <section aria-labelledby="s5">
-    <h2 id="s5"><span class="no">5</span>Model A: learning from scratch <span class="tag t-learn">Learned</span></h2>
+    <h2 id="s5"><span class="no">6</span>Model A: learning from scratch <span class="tag t-learn">Learned</span></h2>
     <div class="split">
       <div class="vis">
         <p class="note" id="a-desc"></p>
@@ -156,7 +187,7 @@
   </section>
 
   <section aria-labelledby="s6">
-    <h2 id="s6"><span class="no">6</span>How the models were tuned <span class="tag t-choice">Design choice</span></h2>
+    <h2 id="s6"><span class="no">7</span>How the models were tuned <span class="tag t-choice">Design choice</span></h2>
     <div class="vis">
       <p class="note">Settings like the learning rate, the number of filters, augmentation or dropout aren't learned: people choose them by trying. These are all the experiments behind this page, in the order they were run. Every run is judged on the <b>validation</b> photos only, by <b>balanced accuracy</b>: the average of the husky score and the malamute score, so that always answering "husky" scores 50%, not 75%. The test photos were not looked at until the choice was made. Every run is seeded, so <code>tools/experiments.py</code> gives the same numbers again.</p>
       <h3 class="sub-h">Model A, from scratch</h3>
@@ -171,7 +202,7 @@
   </section>
 
   <section aria-labelledby="s7">
-    <h2 id="s7"><span class="no">7</span>Model B: transfer learning <span class="tag t-learn">Learned</span></h2>
+    <h2 id="s7"><span class="no">8</span>Model B: transfer learning <span class="tag t-learn">Learned</span></h2>
     <div class="split">
       <div class="vis">
         <p class="note" id="b-desc"></p>
@@ -188,7 +219,7 @@
   </section>
 
   <section aria-labelledby="s8">
-    <h2 id="s8"><span class="no">8</span>What the model looks at <span class="tag t-calc">Computed</span></h2>
+    <h2 id="s8"><span class="no">9</span>What the model looks at <span class="tag t-calc">Computed</span></h2>
     <div class="split">
       <div class="vis">
         <p class="note">Both models end with average pooling and one dense layer, so their decision can be traced back to places in the photo. Each last feature map is multiplied by the dense layer's weight for the predicted breed and the maps are added up: a class activation map (CAM). Coloured areas pushed the model towards its answer, the brightest most. A good model looks at the dog's face, ears and coat; a model that looks at the snow or the grass has learned a shortcut.</p>
@@ -202,7 +233,7 @@
   </section>
 
   <section aria-labelledby="s9">
-    <h2 id="s9"><span class="no">9</span>Results and mistakes <span class="tag t-calc">Computed</span></h2>
+    <h2 id="s9"><span class="no">10</span>Results and mistakes <span class="tag t-calc">Computed</span></h2>
     <div class="split">
       <div class="vis">
         <p class="note">Both models on the test photos, which played no part in training or in choosing settings. Rows: the true breed; columns: what the model said.</p>
@@ -222,7 +253,7 @@
   </section>
 
   <section aria-labelledby="s10">
-    <h2 id="s10"><span class="no">10</span>Try your own photo <span class="tag t-data">Input data</span> <span class="tag t-calc">Computed</span></h2>
+    <h2 id="s10"><span class="no">11</span>Try your own photo <span class="tag t-data">Input data</span> <span class="tag t-calc">Computed</span></h2>
     <div class="vis">
       <p class="note">Use a photo of a husky or a malamute (or anything else, to see what happens: the models only know these two answers, so a cat still gets one). It's padded to a square and resized to 224×224 like the training photos, then both models run on it in your browser. Nothing is uploaded.</p>
       <label class="drop" id="drop">Drop a photo here, or choose one<input type="file" id="file" accept="image/*"></label>
@@ -251,7 +282,7 @@
   const breed = p => (p > 0.5 ? 'malamute' : 'husky');
 
   // Default: a malamute model B gets right (the rarer breed is the more interesting one)
-  const state = { photo: test.find(p => p.label === 'malamute' && p.pb > 0.8) || test[0], filter: 'b' };
+  const state = { photo: test.find(p => p.label === 'malamute' && p.pb > 0.8) || test[0], filter: 'b', block: { m: 'b', i: 1 } };
   let models = null;   // { a, b, wa, wb } once TensorFlow.js has loaded them
 
   function el(tag, attrs = {}, ...kids) {
@@ -368,6 +399,92 @@
     }));
   }
 
+  // ---- 5. The whole model at a glance: both models block by block, click a block to see its output ----
+  const ARCH = { a: D.arch.scratch, b: D.arch.transfer };
+  const PHOTO = ['photo', [224, 224, 3], 0, 'input', []];
+  const rowsOf = m => [PHOTO, ...ARCH[m]];
+  const dims = shape => (shape.length === 3 ? { size: shape[0], ch: shape[2] } : { size: 1, ch: shape[0] });
+  const shapeText = shape => shape.join(' × ');
+  // The TF.js layer whose output a block shows (the pooling layer of model B is called "gap" in the exported model)
+  const outLayer = (m, row) => (row[0] === 'average pooling' ? 'gap' : row[4][row[4].length - 1]);
+
+  function describe(m, i) {
+    const rows = rowsOf(m), [name, shape, , part, layers] = rows[i], prev = rows[i - 1], { size, ch } = dims(shape);
+    const halves = prev && prev[1].length === 3 && shape.length === 3 && shape[0] < prev[1][0];
+    if (name === 'photo') return `The input: ${size}×${size} pixels, each with a red, a green and a blue value (step 2).`;
+    if (name === 'rescale') return 'Divides every pixel value by 255, so the numbers run from 0 to 1. No weights: nothing to learn.';
+    if (name === 'resize') return `Shrinks the photo to ${size}×${size} pixels first: chosen in the experiments (step 7).`;
+    if (name === 'stem') return `MobileNetV2's first layer: ${ch} filters of 3×3 pixels × 3 colours (step 3 shows them). It moves two pixels at a time, so its maps are half the size. Batch normalisation and a ReLU follow.`;
+    if (/^block \d+$/.test(name)) {
+      const residual = prev && JSON.stringify(prev[1]) === JSON.stringify(shape);
+      return 'An inverted residual block, MobileNetV2\'s building block: a 1×1 convolution first expands to more channels, a 3×3 depthwise convolution then looks at each pixel\'s neighbours within each channel, and a 1×1 convolution projects back down to ' + ch + ' channels. ' +
+        (halves ? `This block moves two pixels at a time: its maps are half the size (${prev[1][0]} → ${size}). ` : '') +
+        (residual ? 'Its input has the same shape as its output, so the input is added back: a shortcut that lets the block learn just a correction, which makes deep networks much easier to train.' : 'Its output has a different shape from its input, so there is no shortcut here.');
+    }
+    if (name === 'last conv') return `A 1×1 convolution that mixes each position's ${prev[1][2]} numbers into ${ch}: the last feature maps (step 4), and what the heatmaps in step 9 are made of.`;
+    if (/^conv \d+$/.test(name)) return `A 3×3 convolution with ${ch} filters${layers.some(l => l.startsWith('bn')) ? ', batch normalisation' : ''} and a ReLU` +
+      (layers.some(l => l.startsWith('pool')) ? ', then max pooling: the largest value of each 2×2 square, so the maps are half the size.' : '. The last convolution: no pooling after it.');
+    if (name === 'average pooling') return `The average of each map: ${ch} numbers per photo, its features. Where things are is gone; what is there remains. No weights.`;
+    if (name === 'dropout') return 'During training, randomly sets some features to zero, so the next layer can\'t lean on just a few. When predicting, as here, it does nothing.';
+    if (name === 'classify') return `The dense layer: each answer gets a score, the sum of all ${prev[1][0]} features times a learned weight, plus a bias. Softmax turns the two scores into probabilities.` + (m === 'b' ? ' The only part of model B trained on our photos.' : '');
+    return '';
+  }
+
+  function renderArch() {
+    for (const m of ['a', 'b']) {
+      $('arch-' + m).replaceChildren(...rowsOf(m).map((row, i) => {
+        const [name, shape, params, part] = row, { size, ch } = dims(shape);
+        return el('li', {}, el('button', {
+          class: params === 0 && part !== 'input' ? 'none' : part, 'aria-pressed': String(state.block.m === m && state.block.i === i),
+          'aria-label': `${name}: output ${shapeText(shape)}, ${params === 0 ? 'no weights' : `${params.toLocaleString('en')} weights, ${part}`}`, onclick: () => { state.block = { m, i }; renderArch(); renderArchDetail(); },
+        },
+          el('span', { class: 'nm' }, name),
+          el('span', { class: 'bars', 'aria-hidden': 'true' },
+            el('i', { class: 'sz', style: `width:${(100 * size / 224).toFixed(1)}%` }),
+            el('i', { class: 'ch', style: `width:${(100 * Math.log2(ch + 1) / Math.log2(1281)).toFixed(1)}%` })),
+          el('span', { class: 'sh' }, shapeText(shape))));
+      }));
+      const total = ARCH[m].reduce((t, r) => t + r[2], 0), trained = ARCH[m].filter(r => r[3] === 'trained').reduce((t, r) => t + r[2], 0);
+      $('arch-' + m + '-sum').textContent = `${total.toLocaleString('en')} weights: ` + (trained === total ? 'all trained on our photos.' : `${(total - trained).toLocaleString('en')} frozen, ${trained.toLocaleString('en')} trained on our photos.`);
+    }
+  }
+
+  const subModels = new Map();   // a cut-off copy of a model per block, made once
+  async function renderArchDetail() {
+    const { m, i } = state.block, row = rowsOf(m)[i], [name, shape, params, part] = row;
+    const title = `${m === 'a' ? 'Model A' : 'Model B'} · ${name}`;
+    const facts = el('p', { class: 'cap' }, el('b', {}, shapeText(shape)), ` output · ${part === 'input' ? 'the input' : params === 0 ? 'no weights: a fixed calculation' : `${params.toLocaleString('en')} weights, ${part === 'frozen' ? 'frozen, from ImageNet' : 'trained on our photos'}`}`);
+    const live = el('div', { class: 'vis' });
+    $('arch-detail').replaceChildren(el('h3', { class: 'sub-h' }, title), el('p', { class: 'note' }, describe(m, i)), facts, live);
+    const p = state.photo;
+    if (name === 'photo') { const c = el('canvas', { class: 'big', width: 224, height: 224 }); live.append(c); c.getContext('2d').drawImage(await loadImage(p.file), 0, 0); return; }
+    if (!models) { live.append(el('p', { class: 'note' }, 'Its output appears here once the models have loaded.')); return; }
+    const model = m === 'a' ? models.a : models.b, layer = outLayer(m, row), key = m + ':' + layer;
+    if (!subModels.has(key)) subModels.set(key, tf.model({ inputs: model.inputs, outputs: model.getLayer(layer).output }));
+    const img = await loadImage(p.file);
+    const t = tf.tidy(() => subModels.get(key).predict(tf.browser.fromPixels(img).toFloat().expandDims(0)));
+    const out = await t.array();
+    t.dispose();
+    if (state.photo !== p || state.block.m !== m || state.block.i !== i) return;   // the reader moved on meanwhile
+    const v = out[0];
+    if (shape.length === 3) {
+      const grid = el('div', { class: 'maps' });
+      live.append(el('p', { class: 'cap' }, `The ${Math.min(8, shape[2])} maps (of ${shape[2]}) that react most to photo ${p.id}:`), grid);
+      mapGrid(grid, v, 8, `${name}`);
+    } else if (shape[0] > 2) {
+      const max = Math.max(1e-9, ...v), top = [...v.keys()].sort((x, y) => v[y] - v[x]);
+      // One column per number, largest first, drawn on a canvas (1280 bars are thinner than a pixel as HTML)
+      const c = el('canvas', { class: 'feat', width: top.length, height: 60, role: 'img', 'aria-label': `${shape[0]} features, the largest ${v[top[0]].toFixed(2)}` });
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = token('--accent');
+      top.forEach((k, x) => { const h = Math.max(0.5, 60 * v[k] / max); ctx.fillRect(x, 60 - h, 1, h); });
+      live.append(el('p', { class: 'cap' }, `All ${shape[0]} numbers for photo ${p.id}, largest first: most are small, a few stand out.`), c);
+    } else {
+      live.append(el('div', { class: 'bars' }, ...D.classes.map((c, k) => el('div', { class: 'bar-row' + (v[k] > 0.5 ? ' win' : '') },
+        el('span', { class: 'n' }, c), el('div', { class: 'track' }, el('div', { class: 'fillbar', style: `width:${(100 * v[k]).toFixed(1)}%` })), el('span', { class: 'p' }, pct(v[k]))))));
+    }
+  }
+
   // ---- Static parts ----
   function renderStatic() {
     const c = D.counts;
@@ -388,9 +505,10 @@
     const always = c.test.husky / (c.test.husky + c.test.malamute), nTrain = c.train.husky + c.train.malamute;
     document.querySelectorAll('[data-n="train"]').forEach(e => { e.textContent = String(nTrain); });
     document.querySelectorAll('[data-n="total"]').forEach(e => { e.textContent = String(D.photos.length); });
-    $('a-verdict').textContent = `On the test photos model A gets ${pct(mA.accuracy)} right: fewer than a model that always says "husky" (${pct(always)}). Its balanced accuracy is ${pct(mA.balanced)}, around a coin flip: it hasn't learned to tell the breeds apart. That is the honest result of learning from a few hundred photos: there are far more ways to fit ${nTrain} photos than ways that work on new ones. Step 6 shows what was tried to change that.`;
+    $('a-verdict').textContent = `On the test photos model A gets ${pct(mA.accuracy)} right: fewer than a model that always says "husky" (${pct(always)}). Its balanced accuracy is ${pct(mA.balanced)}, around a coin flip: it hasn't learned to tell the breeds apart. That is the honest result of learning from a few hundred photos: there are far more ways to fit ${nTrain} photos than ways that work on new ones. Step 7 shows what was tried to change that.`;
     $('b-desc').textContent = `MobileNetV2 was trained on ImageNet: 1.2 million photos in 1000 classes. Its layers are kept frozen, exactly as they are; only its last layer is replaced by our head: dropout and one dense layer from its 1280 features to husky or malamute. That's ${D.params.head.toLocaleString('en')} weights to learn instead of ${D.params.scratch.toLocaleString('en')}. On the test photos it reaches ${pct(mB.accuracy)} accuracy and ${pct(mB.balanced)} balanced accuracy.`;
     renderCurve('a'); renderCurve('b');
+    renderArch();
     renderExperiments();
     renderConfusions();
   }
@@ -488,7 +606,7 @@
       return el('div', { class: 'cv' }, c, el('span', {}, name));
     }));
 
-    if (!models) return;
+    if (!models) { renderArchDetail(); return; }
     const r = await analyse(img);
     if (state.photo !== p) return;
     mapGrid($('maps1'), r.conv1, 8, 'First layer');
@@ -507,6 +625,7 @@
     drawCam($('cam-b'), img, r.camB); drawCam($('cam-a'), img, r.camA);
     $('cam-b-cap').textContent = `Model B says ${breed(r.pb)} (${pct(Math.max(r.pb, 1 - r.pb))}): bright areas pushed it there.`;
     $('cam-a-cap').textContent = `Model A says ${breed(r.pa)} (${pct(Math.max(r.pa, 1 - r.pa))}).`;
+    renderArchDetail();
   }
 
   function select(p) { state.photo = p; render(); }

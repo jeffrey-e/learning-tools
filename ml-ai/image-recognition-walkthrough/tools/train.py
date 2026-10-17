@@ -17,6 +17,7 @@ Usage:  python3 -P tools/train.py        (seeded and deterministic on CPU)
 import importlib.util
 import json
 import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 # The model builders and training loops are shared with the experiments, so the chosen run is exactly what's trained here.
@@ -29,6 +30,40 @@ import numpy as np  # noqa: E402
 import tensorflow as tf  # noqa: E402
 
 CLASSES = ["husky", "malamute"]
+
+
+def block_name(n):
+    """Groups Keras layers into the blocks the page draws (same rules as the page's Python cell)."""
+    m = re.match(r"block_(\d+)_", n)
+    if m:
+        return "block " + m.group(1)
+    if n.startswith("expanded_conv"):
+        return "block 0"
+    if n in ("Conv1", "bn_Conv1", "Conv1_relu"):
+        return "stem"
+    if n in ("Conv_1", "Conv_1_bn", "out_relu"):
+        return "last conv"
+    m = re.match(r"(conv|bn|relu|pool)(\d+)$", n)
+    if m:
+        return "conv " + m.group(2)
+    if n == "gap" or n.startswith("global_average_pooling"):
+        return "average pooling"
+    return n
+
+
+def blocks(layers, part):
+    """One row per block: [name, output shape, weights, frozen/trained, the Keras layers in it]."""
+    rows = []
+    for layer in layers:
+        if isinstance(layer, keras.layers.InputLayer):
+            continue
+        name, shape = block_name(layer.name), list(layer.output.shape)[1:]
+        if rows and rows[-1][0] == name:
+            rows[-1][1], rows[-1][2] = shape, rows[-1][2] + layer.count_params()
+            rows[-1][4].append(layer.name)
+        else:
+            rows.append([name, shape, layer.count_params(), part, [layer.name]])
+    return rows
 
 
 def main():
@@ -87,6 +122,9 @@ def main():
         "chosen": exp["chosen"], "config": {"scratch": cfg_a, "transfer": cfg_b},
         "params": {"scratch": int(scratch.count_params()), "base": int(base.count_params()), "head": int(head.count_params())},
         "history": {"scratch": hist(hist_a), "transfer": hist(hist_b)},
+        # The structure of both models, block by block, for the page's diagram (step 5)
+        "arch": {"scratch": blocks(scratch.layers, "trained"),
+                 "transfer": blocks(base.layers, "frozen") + blocks(head.layers, "trained")},
         "metrics": metrics,
         "experiments": {k: exp[k] for k in ("scratch", "transfer")},
         # One row per photo: credits, split, the Keras probability of "malamute" for both models, ImageNet's top 3,

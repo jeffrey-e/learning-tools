@@ -51,6 +51,14 @@ npm test
 
 TensorFlow computes in float32, so the generated code limits printouts to 4 decimals (`np.set_printoptions(precision=4, suppress=True)`). That keeps the output identical across machines.
 
+## How index.html's script is organised
+
+- **Engines.** `runNP` (plain JavaScript mirroring NumPy) and `runTF` (TensorFlow.js ops) compute convolution, activation and pooling; `dense()` does the logits and softmax. `useTF()` picks one. If TensorFlow.js fails to load, the page falls back to plain JavaScript and says so (`setEngineNote`).
+- **NumPy-style printing.** `npStr`, `decStr` and `pyRound4` reproduce NumPy's array and scalar printing, including float32 shortest repr, capped at 4 decimals to match `np.set_printoptions(precision=4, suppress=True)` in the generated code. `pyLit` writes Python literals.
+- **Code panels.** `renderNP1`/`renderTF1` (steps 1–3) and `renderNPRest`/`renderTFRest` (steps 4–6) build the cells in the "Show code" panels; the "Show all code" choice is stored in `localStorage` (`tinycnn-code-open`). `fullScript()` joins the non-optional cells for the copy button.
+- **Training core.** `makeDataset` (54 shapes), `forward`, `backward` (hand-written backpropagation), `batchGrads`, `applyUpdate` (SGD, momentum 0.9 and Adam, with the same formulas as Keras), `runEpoch`, `evaluate`, `randomParams` (Glorot uniform). Seeded with `mulberry32`, so "Rerun from same start" is exact.
+- **Train UI.** `trainEpoch`, `renderChart` (the current run and up to 3 earlier ones), `renderTrainStats`, the teach step, and `pyTrain()` (the training script for the current engine, optimizer, learning rate, ReLU and kernel settings).
+
 ## Repository layout
 
 ```

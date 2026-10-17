@@ -76,6 +76,15 @@ const server = http.createServer((req, res) => {
       if (await page.locator('#g-mistakes .ph').count() !== await page.locator('#g-test .ph').count()) fail('"all test photos" does not show every test photo');
       if (nA <= nB) fail(`model A should make more mistakes than model B (${nA} vs ${nB})`);
 
+      // 5. The whole model: both diagrams, and clicking a block shows its live output
+      const archA = await page.locator('#arch-a button').count(), archB = await page.locator('#arch-b button').count();
+      if (archA < 5 || archB < 20) fail(`the model diagrams are incomplete (${archA} and ${archB} blocks)`);
+      for (const [col, label, want] of [['b', 'block 5', '.maps canvas'], ['b', 'average pooling', 'canvas.feat'], ['b', 'classify', '.bar-row'], ['a', 'conv 2', '.maps canvas']]) {
+        await page.click(`#arch-${col} button:has(.nm:text-is("${label}"))`);
+        await page.waitForSelector(`#arch-detail ${want}`, { timeout: 60000 });
+        if (!(await page.textContent('#arch-detail h3')).endsWith(label)) fail(`clicking ${label} did not show it`);
+      }
+
       // Tables and charts
       if (await page.locator('#exp-a tr').count() < 3 || await page.locator('#exp-b tr').count() < 3) fail('the experiment tables are empty');
       if (await page.locator('#exp-a tr.chosen').count() !== 1 || await page.locator('#exp-b tr.chosen').count() !== 1) fail('each experiment table must mark one chosen run');

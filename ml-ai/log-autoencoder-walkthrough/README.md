@@ -17,6 +17,21 @@ An autoencoder (Keras `Embedding` and `Conv1D` layers) is trained only on legiti
 - **Filter your own lines.** Paste lines from any `auth.log` (or load a random sample): each line is scored on its own, lines scored as normal are removed, and the original anomalous lines remain, with a vote across the four tokenizer models and a check against the labels for lines that are in this log.
 - **Real code beside each step.** The matching TensorFlow/Keras code with the exact output it prints.
 
+## The model
+
+- **Data:** the sshd lines of Elastic's `auth.log`, with the date, host and process id stripped. Labels come from rules on the message type (legitimate, attack, other); the model never sees them. Only legitimate lines are used for training: 60% train, 20% validation, 20% test, the same split for every tokenizer.
+- **Tokens to ids:** every line becomes a fixed number of ids L (0 = padding, 1 = unknown).
+
+  | Tokenizer | Tokens | L |
+  |---|---|---|
+  | `chars` | every character | 128 |
+  | `masked` | characters, with IP addresses and numbers replaced by `<ip>` and `<num>` | 112 |
+  | `words` | words and punctuation, same placeholders | 32 |
+  | `bpe` | subwords from 200 byte pair encoding merges learned on the training lines | 64 |
+
+- **Autoencoder:** `Embedding(V, 8)` → `Conv1D(16, 5)` + max pooling → `Conv1D(4, 5)` + max pooling (the bottleneck: L/4 positions × 4 numbers) → upsampling and `Conv1D` back to L positions → a softmax over the vocabulary at every position. Each tokenizer has its own model.
+- **Score:** the mean of −log p(true token) over the real tokens. **Threshold:** the 99th percentile of the validation scores.
+
 ## Run it locally
 
 Serve the repository root (the page loads `weights.js`, `data.js`, `model.js` and `../../assets/site.css`), for example `python3 -m http.server` from the repository root, then open `/ml-ai/log-autoencoder-walkthrough/`.

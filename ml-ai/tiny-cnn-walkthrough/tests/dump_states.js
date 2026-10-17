@@ -7,6 +7,16 @@ const fs = require('fs');
 const path = require('path');
 const tf = require('@tensorflow/tfjs');
 
+// The page's Subresource Integrity hash must be the hash of the pinned TF.js (the same bytes as the CDN)
+{
+  const tfFile = require.resolve('@tensorflow/tfjs/dist/tf.min.js');
+  const sri = 'sha384-' + require('crypto').createHash('sha384').update(require('fs').readFileSync(tfFile)).digest('base64');
+  if (!require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8').includes(`integrity="${sri}"`)) {
+    console.error(`dump_states failed: the TF.js script tag needs integrity="${sri}"`);
+    process.exit(1);
+  }
+}
+
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8')
   .replace(/<script src="https:\/\/cdn\.jsdelivr[^>]*><\/script>/, '');
