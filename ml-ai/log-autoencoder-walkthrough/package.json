@@ -1,0 +1,14 @@
+{
+  "name": "log-autoencoder-walkthrough",
+  "private": true,
+  "description": "Verification harness for the Log Autoencoder Walkthrough page. The page itself needs no build step.",
+  "scripts": {
+    "test": "node tests/page_smoke.js && node tests/dump_states.js && python3 tests/check_outputs.py",
+    "test:quick": "node tests/page_smoke.js && node tests/dump_states.js && python3 tests/check_outputs.py --quick",
+    "generate": "node tools/generate_python.js",
+    "train": "python3 tools/train_model.py && node tools/generate_python.js"
+  },
+  "devDependencies": {
+    "jsdom": "24.1.3"
+  }
+}

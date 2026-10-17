@@ -19,6 +19,7 @@ jobs:
         project:
           - ml-ai/tiny-cnn-walkthrough
           - ml-ai/tiny-llm-walkthrough
+          - ml-ai/log-autoencoder-walkthrough
     name: verify (${{ matrix.project }})
     defaults:
       run:

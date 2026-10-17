@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Log Autoencoder Walkthrough</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/site.css">
+<style>
+/* Page-specific components; everything else comes from the shared site.css */
+.log{font-family:var(--f-mono);font-size:12px;line-height:1.6;background:var(--bg);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre;margin:0;color:var(--fg)}
+.log .pre{color:var(--faint)}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.field input{font:inherit;font-family:var(--f-mono);font-size:13px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;box-sizing:border-box}
+.field input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.toolbar select{max-width:min(100%,280px)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{display:inline-flex;flex-direction:column;align-items:center;gap:0;min-width:30px;padding:3px 4px;font-family:var(--f-mono);font-size:14px;line-height:1.3}
+.chip .id{font-size:10px;color:var(--faint)}
+.chip[aria-pressed="true"] .id{color:var(--accent)}
+.chip.unk{border-style:dashed;color:var(--neg-fg)}
+.rules td{text-align:left;height:auto;padding:6px 8px;font-family:var(--f-body);font-size:13px;color:var(--muted);vertical-align:top;min-width:0}
+.rules td:first-child{white-space:nowrap}
+.rules td.num{text-align:right;font-family:var(--f-mono);color:var(--fg)}
+.mt td.name{min-width:56px;font-family:var(--f-mono);font-size:12px}
+.mt tr.focus td.name{color:var(--accent)}
+.strip{display:block}
+.strip text{fill:var(--muted);font-family:var(--f-mono);font-size:10px}
+.strip .sel{fill:none;stroke:var(--accent);stroke-width:1.5}
+.strip .pad{fill:var(--zero)}
+.strip .hit{fill:transparent;cursor:pointer}
+.cap{font-size:13px;color:var(--muted)}
+.cap b{color:var(--fg);font-weight:600}
+/* Original over reconstruction, one column per character, so the two rows stay aligned when the line wraps */
+.pair{display:flex;flex-wrap:wrap;font-family:var(--f-mono);font-size:13px;line-height:1.3;row-gap:6px}
+.pair .c{display:inline-flex;flex-direction:column;align-items:center;min-width:1ch;padding:1px 0;border-radius:3px;background:color-mix(in srgb,var(--neg) calc(var(--e) * 100%),transparent);cursor:pointer;border:0;font:inherit;color:var(--fg)}
+.pair .c .r{color:var(--muted)}
+.pair .c.miss .r{color:var(--neg-fg);font-weight:600;text-decoration:underline}
+.pair .c.on{outline:2px solid var(--accent);outline-offset:-1px}
+.pair .c:focus-visible{outline:2px solid var(--accent)}
+.pair.static .c{cursor:default}
+.legend-pair{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.verdict{display:inline-block;font-weight:600;padding:2px 10px;border-radius:999px;font-size:13px}
+.verdict.anom{background:var(--neg);color:var(--neg-fg)}
+.verdict.norm{background:var(--pos);color:var(--pos-fg)}
+.metrics.m4{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+.metric .s{font-size:12px;color:var(--muted)}
+.slider{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+.slider input{accent-color:var(--accent);width:min(300px,60vw)}
+.slider output{font-family:var(--f-mono);color:var(--fg);min-width:4ch}
+.chart{max-width:680px}
+.chart .thr{stroke:var(--fg);stroke-width:1.5;stroke-dasharray:4 3}
+.chart .b-on{fill:var(--accent)} .chart .b-off{fill:var(--accent-soft)}
+.chart .val{stroke:var(--p-choice-fg);fill:none;stroke-width:2;stroke-dasharray:6 4}
+.chart .lab{fill:var(--muted);font-family:var(--f-body);font-size:12px}
+.chart .cross{stroke:var(--faint);stroke-width:1}
+.lg.val{border-top-color:var(--p-choice-fg);border-top-style:dashed}
+.lg.trn{border-top-color:var(--accent)}
+.sw.on{background:var(--accent)} .sw.off{background:var(--accent-soft)}
+.items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.item .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.item .meta .sc{font-family:var(--f-mono);color:var(--fg)}
+.item .meta button{font-size:13px;padding:2px 10px;margin-left:auto}
+.lists{display:flex;flex-direction:column;gap:18px}
+.lists h3{font-family:var(--f-display);font-weight:500;font-size:17px;margin:0 0 4px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">Learning tools</a> / <a href="../">Machine learning and AI</a> / Log autoencoder walkthrough</nav>
+  <div class="intro">
+    <h1>Log Autoencoder Walkthrough</h1>
+    <p>An autoencoder learns to copy its input through a narrow middle. Trained only on normal SSH messages, it learns their patterns well enough to rebuild them, and it can't rebuild what it has never seen. Lines it rebuilds badly are anomalies. This page follows one line of a real <code>auth.log</code> through every step: characters, an embedding, Conv1D layers that squeeze the line down and expand it again, and the reconstruction error that decides. Each stage has the matching TensorFlow/Keras code, with the output it prints; open it with Show code.</p>
+  </div>
+
+  <div class="toolbar" role="toolbar" aria-label="Controls">
+    <label class="lab" for="preset">Line</label>
+    <select id="preset"></select>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="code-all">Show all code</button>
+    <button id="copy">Copy full script</button>
+    <span class="toast" id="toast" aria-live="polite"></span>
+  </div>
+  <textarea id="copy-fallback" hidden readonly style="width:100%;height:200px;font-family:var(--f-mono);font-size:12px" aria-label="Full Python script"></textarea>
+
+  <section aria-labelledby="s0">
+    <h2 id="s0"><span class="no">0</span>Where the values come from</h2>
+    <p class="note">Every number below has one of four origins. Each stage is tagged with the same labels.</p>
+    <div class="sources">
+      <div class="src"><span class="tag t-data">Input data</span><span>The log itself: 25 days of a real server's <code>auth.log</code>, attacks included.</span><span class="ex">Here: the sshd messages, turned into character ids.</span></div>
+      <div class="src"><span class="tag t-choice">Design choice</span><span>Decided before training: which lines count as normal, the line length, the layer sizes, the threshold rule.</span><span class="ex">Here: 128 characters, 8-number embeddings, filters of 5 characters, a 32×4 bottleneck.</span></div>
+      <div class="src"><span class="tag t-learn">Learned</span><span>The weights: the embedding table and every Conv1D filter, learned by Keras from the normal lines only.</span><span class="ex" id="params-note"></span></div>
+      <div class="src"><span class="tag t-calc">Computed</span><span>Produced while one line passes through the model, then thrown away.</span><span class="ex">Here: feature maps, the bottleneck, probabilities, the reconstruction and its error score.</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s1">
+    <h2 id="s1"><span class="no">1</span>The log file <span class="tag t-data">Input data</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">The data is the <code>auth.log</code> from Elastic's <a href="https://github.com/elastic/examples/tree/master/Machine%20Learning/Security%20Analytics%20Recipes/suspicious_login_activity">suspicious login activity</a> example (Apache-2.0): one internet-facing Ubuntu server, 27 March to 20 April. Every line starts with a date, the host name and the program that wrote it.</p>
+        <pre class="log" id="raw" aria-label="The first lines of auth.log"></pre>
+        <p class="note">Several programs write to this file. Only <b>sshd</b>, the SSH server, is about SSH connections, so we keep its lines. We also drop the start of each line (date, host, process id, shown faint above): it changes on every line and says nothing about what the message means. What's left is the message.</p>
+        <div class="bars" id="programs"></div>
+      </div>
+      <details class="py" data-cell="data"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s2">
+    <h2 id="s2"><span class="no">2</span>What is normal? Labels, balance and split <span class="tag t-choice">Design choice</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">The file has no labels. To train on normal lines and to check the results, each message gets a label from its type with a few simple rules. The model never sees these labels.</p>
+        <div class="scroll"><table class="rules" id="t-rules"></table></div>
+        <div class="bars" id="balance"></div>
+        <p class="note"><b>The data is unbalanced, the "wrong" way round.</b> Most sshd lines are attacks: bots trying passwords all day long. An autoencoder learns whatever is common, so trained on everything it would learn that brute-force attempts are normal, and stop flagging them. So it's trained on legitimate lines only (semi-supervised): you need a period, or a filter, you trust to be clean. In practice that's the hardest part.</p>
+        <div class="metrics" id="split"></div>
+        <p class="note">The validation lines are never trained on; their scores set the threshold in step 9. The test lines, legitimate and attack, are used only to measure the result.</p>
+      </div>
+      <details class="py" data-cell="labels"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s3">
+    <h2 id="s3"><span class="no">3</span>Characters to ids <span class="tag t-data">Input data</span> <span class="tag t-choice">Design choice</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">The model reads the message one character at a time. Every character seen in the training lines gets an id; anything else becomes id 1, "unknown" (dashed below). Every line becomes exactly 128 ids: longer messages are cut, shorter ones padded with id 0. Characters, not words, so that IP addresses, ports and user names need no special handling. Pick a line in the toolbar, edit it, or type your own; click a character to inspect it in the steps below.</p>
+        <label class="field">Message (without the date, host and process id)<input id="text" type="text" maxlength="200" autocomplete="off" spellcheck="false"></label>
+        <div class="chips" id="chips" aria-label="Characters and their ids"></div>
+        <p class="math" id="enc-note"></p>
+      </div>
+      <details class="py" data-cell="chars"></details>
+    </div>
+  </section>
+
+  <div id="steps">
+  <section aria-labelledby="s4">
+    <h2 id="s4"><span class="no">4</span>Embedding <span class="tag t-learn">Learned</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">An id is just a label: 7 isn't "more" than 6. The embedding layer swaps each id for a learned row of 8 numbers, so characters that behave alike can end up with similar rows. The whole line becomes a 128×8 matrix: one column per character below, one row per embedding number. Blue is positive, red negative, and stronger colour means a larger number; padding is grey. Click a column to inspect that character.</p>
+        <div class="scroll"><svg class="strip" id="v-emb" role="img" aria-label="Embedding of every character"></svg></div>
+        <div class="mats"><div class="scroll"><table class="mt" id="t-emb"></table></div></div>
+        <p class="math" id="near"></p>
+        <details><summary class="cap">The full embedding table</summary><div class="scroll"><table class="mt" id="t-E"></table></div></details>
+      </div>
+      <details class="py" data-cell="model embedding"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s5">
+    <h2 id="s5"><span class="no">5</span>Encoder: Conv1D and pooling <span class="tag t-learn">Learned</span> <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">A Conv1D filter slides along the line and looks at 5 neighbouring characters at a time. It multiplies their 5×8 embedding numbers with its own 5×8 learned weights and adds them up: a high value means "the pattern I look for is here", such as a run of digits or the letters of "port". 16 filters give 16 numbers per position, and ReLU sets negatives to 0. Max pooling then keeps the larger of every two neighbours, halving the length. A second Conv1D and pooling leave the <b>bottleneck</b>.</p>
+        <div class="cap" id="win"></div>
+        <div class="scroll"><svg class="strip" id="v-enc" role="img" aria-label="Encoder feature maps"></svg></div>
+        <p class="note" id="squeeze"></p>
+      </div>
+      <details class="py" data-cell="encoder"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s6">
+    <h2 id="s6"><span class="no">6</span>Decoder: back to characters <span class="tag t-learn">Learned</span> <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">The decoder only gets the bottleneck. Upsampling repeats every position twice, and a Conv1D after each repeat lets neighbours differ again. The last layer is a Conv1D with filters 1 character wide: it turns each position's 16 numbers into one score per character in the vocabulary, and softmax makes those probabilities. The model never copies the input: it has to rebuild the line from the 128 numbers in the bottleneck.</p>
+        <div class="scroll"><svg class="strip" id="v-dec" role="img" aria-label="Decoder feature maps and confidence"></svg></div>
+        <div class="cap" id="top-cap"></div>
+        <div class="bars" id="top"></div>
+      </div>
+      <details class="py" data-cell="decoder"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s7">
+    <h2 id="s7"><span class="no">7</span>Reconstruction and error <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">The reconstruction is the most likely character at each position. The error for one character is −log of the probability the model gave the <i>true</i> character: 0 when it was certain and right, about 16 when it was sure of something else. The line's anomaly score is the average over its characters. Top row: the line; bottom row: the reconstruction, with mistakes underlined and the background tinted by the error.</p>
+        <div class="pair" id="pair" aria-label="Original over reconstruction"></div>
+        <div class="metrics" id="verdict"></div>
+        <p class="note" id="verdict-note"></p>
+      </div>
+      <details class="py" data-cell="reconstruct"></details>
+    </div>
+  </section>
+  </div>
+  <p class="err" id="empty-note" hidden>The message is empty, so there's nothing to reconstruct. Pick a line in the toolbar or type one.</p>
+
+  <section aria-labelledby="s8">
+    <h2 id="s8"><span class="no">8</span>Training <span class="tag t-learn">Learned</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Training is ordinary supervised learning with a twist: the target is the input itself. Keras shows the model the training lines, measures the error at every real character (padding doesn't count), and nudges all the weights to reduce it, using the Adam optimizer. The validation lines are only measured: when validation loss stays close to training loss, the model has learned general patterns rather than memorizing lines.</p>
+        <svg class="chart" id="loss" viewBox="0 0 600 190" role="img" aria-label="Training and validation loss per epoch"></svg>
+        <div class="legend" id="loss-legend"></div>
+        <p class="note">Why it can't just learn to copy everything: the bottleneck is too small to store an arbitrary line, so the weights have to spend their capacity on what the training lines have in common: their fixed words, the shape of an IP address, the known users and clients. These weights came from the run shown here, rounded to 4 decimals.</p>
+      </div>
+      <details class="py" data-cell="training"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s9">
+    <h2 id="s9"><span class="no">9</span>Detection results <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Every line gets a score. Above the threshold it's flagged as anomalous. The default threshold is the 99th percentile of the validation scores: about 1 in 100 legitimate lines will be flagged, a false alarm rate chosen up front. Move it and watch the trade-off between missed attacks and false alarms.</p>
+        <label class="slider">Threshold <input id="thr" type="range" min="0.5" max="12" step="0.01"><output id="thr-out" for="thr"></output><button id="thr-reset">99th percentile</button></label>
+        <svg class="chart" id="hist" viewBox="0 0 600 290" role="img" aria-label="Score distributions with the threshold"></svg>
+        <div class="legend"><span><i class="sw on"></i>scores above the threshold (flagged)</span><span><i class="sw off"></i>below the threshold</span></div>
+        <div class="metrics m4" id="counts"></div>
+        <p class="note">In this log, attack messages use different words than normal ones ("Failed", "Invalid user", "[preauth]"), so they're easy to separate. The harder cases are below: legitimate lines that are simply rare, and attacks that look normal one line at a time.</p>
+      </div>
+      <details class="py" data-cell="detect"></details>
+    </div>
+    <div class="lists">
+      <div><h3>Flagged as anomalous: the model couldn't rebuild these</h3><p class="note">Test lines above the threshold, highest score first (identical messages are shown once). The reconstruction drifts towards the normal lines the model knows.</p><ul class="items" id="l-flagged"></ul><button data-more="flagged">Show more</button></div>
+      <div><h3>Legitimate lines after reconstruction</h3><p class="note">Legitimate test lines, never seen in training. The fixed words come back exactly; what changes is what can't be predicted, mostly port numbers.</p><ul class="items" id="l-legit"></ul><button data-more="legit">Show more</button></div>
+      <div><h3>False alarms: legitimate, but rare</h3><p class="note">The autoencoder flags what's unusual, not what's malicious. A client that logged in only a few times, or a message type that hardly appears in training, scores high.</p><ul class="items" id="l-false"></ul><button data-more="false">Show more</button></div>
+      <div><h3>Missed attacks</h3><p class="note">Attack lines below the threshold, closest to it first.</p><ul class="items" id="l-missed"></ul><button data-more="missed">Show more</button></div>
+      <div><h3>Other sshd lines</h3><p class="note">Server restarts and debug messages: harmless, but never in the training set, so they're flagged too.</p><ul class="items" id="l-other"></ul><button data-more="other">Show more</button></div>
+      <div><h3>What a line-by-line model can't see</h3><p class="note">24.151.103.17 sent about 150 failed passwords for elastic_user_0, and then logged in successfully. Each of those successful logins is a perfectly normal line, so it scores low. Catching this needs context across lines, such as failures per client in the last hour, which is exactly what Elastic's original example models.</p><ul class="items" id="l-brute"></ul></div>
+    </div>
+  </section>
+</div>
+
+<script src="weights.js"></script>
+<script src="data.js"></script>
+<script src="model.js"></script>
+<script>
+(() => {
+  'use strict';
+  const M = globalThis.LogAE;
+  const W = globalThis.AE_WEIGHTS;
+  const D = globalThis.AE_DATA;
+  const PRESETS = [
+    ['Legitimate: disconnect', 'Received disconnect from 85.245.107.41 port 54259:11: disconnected by user'],
+    ['Legitimate: session opened', 'pam_unix(sshd:session): session opened for user ubuntu by (uid=0)'],
+    ['Legitimate: key login', 'Accepted publickey for ubuntu from 85.245.107.41 port 54988 ssh2: RSA SHA256:Kl8kPGZrTiz7g4FO1hyqHdsSBBb5Fge6NWOobN03XJg'],
+    ['Attack: failed password', 'Failed password for invalid user admin from 122.189.198.238 port 43749 ssh2'],
+    ['Attack: web request on SSH', "Bad protocol version identification 'GET / HTTP/1.1' from 186.219.213.14 port 59547"],
+    ['Attack: closest to normal', 'Received disconnect from 62.48.142.153 port 22567:11: disconnected by user [preauth]'],
+    ['False alarm: rare client', 'Received disconnect from 95.93.96.191 port 50411:11: disconnected by user'],
+    ['Missed: brute-force success', 'Accepted password for elastic_user_0 from 24.151.103.17 port 64635 ssh2'],
+    ['Other: debug message', 'User child is on pid 29582'],
+  ];
+  const CODE_KEY = 'logae-code-open';
+  const PAGE = 6;
+  const $ = id => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const state = { text: PRESETS[0][1], pos: null, threshold: W.threshold, shown: { flagged: PAGE, legit: PAGE, false: PAGE, missed: PAGE, other: PAGE } };
+
+  // ---- Small DOM helpers ----
+  function el(tag, attrs = {}, ...kids) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') node.className = v;
+      else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v);
+    }
+    node.append(...kids);
+    return node;
+  }
+  function svgEl(tag, attrs = {}, text) {
+    const node = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  const fmt = (v, d = 2) => (Math.abs(v) < 0.5 * 10 ** -d ? '0' : v.toFixed(d)).replace('-', '−');
+  const sign = v => (v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero');
+  const vis = c => (c === ' ' ? '␣' : c);
+  const pct = v => (v * 100).toFixed(1) + '%';
+
+  function matrixTable(table, rows, { rowLabels, colLabels, focus = [], digits = 2 } = {}) {
+    table.replaceChildren();
+    if (colLabels) table.append(el('tr', {}, el('th'), ...colLabels.map(c => el('th', { scope: 'col' }, c))));
+    rows.forEach((row, i) => table.append(el('tr', { class: focus.includes(i) ? 'focus' : '' },
+      el('td', { class: 'name' }, rowLabels[i]), ...row.map(v => el('td', { class: sign(v) }, fmt(v, digits))))));
+  }
+
+  // A heat strip: one column per character position, one row per channel, for several layers stacked.
+  // Layers shorter than the line (after pooling) get wider cells, so each column stays under its characters.
+  const CW = 9, CH = 7;
+  function strip(svg, r, layers, { conf } = {}) {
+    const T = Math.min(W.L, Math.ceil((r.n + 4) / 4) * 4);
+    const LABEL = 18;
+    let y = 0;
+    svg.replaceChildren();
+    // character row
+    r.chars.slice(0, T).forEach((c, t) => svg.append(svgEl('text', { x: t * CW + CW / 2, y: 10, 'text-anchor': 'middle' }, vis(c))));
+    y = LABEL;
+    for (const { name, a, diverging } of layers) {
+      const span = W.L / a.length;           // characters per cell
+      const cols = Math.ceil(T / span);
+      const max = Math.max(1e-9, ...a.slice(0, cols).flat().map(Math.abs));
+      svg.append(svgEl('text', { x: 0, y: y + 9 }, name));
+      y += 12;
+      const C = a[0].length;
+      for (let t = 0; t < cols; t++) {
+        const padding = t * span >= r.n;
+        for (let c = 0; c < C; c++) {
+          const v = a[t][c];
+          const fill = padding ? 'var(--zero)' : v >= 0 ? 'var(--accent)' : 'var(--neg-fg)';
+          const op = padding ? 1 : Math.min(1, Math.abs(v) / max);
+          svg.append(svgEl('rect', { x: t * span * CW + 0.5, y: y + c * CH, width: span * CW - 1, height: CH - 1, fill, 'fill-opacity': op.toFixed(3) }));
+        }
+      }
+      y += C * CH + 8;
+    }
+    if (conf) {
+      svg.append(svgEl('text', { x: 0, y: y + 9 }, conf.name));
+      y += 12;
+      conf.values.slice(0, r.n).forEach((v, t) => svg.append(svgEl('rect', { x: t * CW + 0.5, y: y + (1 - v) * 24, width: CW - 1, height: Math.max(1, v * 24), fill: 'var(--accent)' })));
+      y += 30;
+    }
+    const pos = state.pos;
+    svg.append(svgEl('rect', { class: 'sel', x: pos * CW, y: 0, width: CW, height: y - 4 }));
+    // one invisible hit target per column: click to inspect that character
+    for (let t = 0; t < r.n && t < T; t++) {
+      const hit = svgEl('rect', { class: 'hit', x: t * CW, y: 0, width: CW, height: y });
+      hit.append(svgEl('title', {}, `position ${t}: ${vis(r.chars[t])}`));
+      hit.addEventListener('click', () => select(t));
+      svg.append(hit);
+    }
+    svg.setAttribute('width', T * CW);
+    svg.setAttribute('height', y);
+    svg.setAttribute('viewBox', `0 0 ${T * CW} ${y}`);
+  }
+
+  // Original over reconstruction, one column per character, tinted by the error.
+  function pairView(r, { interactive = false } = {}) {
+    const box = el('div', { class: 'pair' + (interactive ? '' : ' static') });
+    r.chars.forEach((c, t) => {
+      const miss = r.recon[t] !== c;
+      const attrs = { class: 'c' + (miss ? ' miss' : '') + (interactive && t === state.pos ? ' on' : ''), style: `--e:${Math.min(1, r.nll[t] / 8).toFixed(3)}`, title: `${vis(c)} → ${vis(r.recon[t])}, error ${fmt(r.nll[t])}` };
+      const kids = [el('span', {}, c === ' ' ? ' ' : c), el('span', { class: 'r' }, r.recon[t] === ' ' ? ' ' : r.recon[t])];
+      box.append(interactive ? el('button', { ...attrs, 'aria-label': `position ${t}, ${vis(c)}, rebuilt as ${vis(r.recon[t])}`, onclick: () => select(t) }, ...kids) : el('span', attrs, ...kids));
+    });
+    return box;
+  }
+
+  // ---- Code panels (same component and behaviour as the other walkthroughs) ----
+  let codeOpen = false;
+  try { codeOpen = localStorage.getItem(CODE_KEY) === '1'; } catch (e) { /* storage unavailable: default closed */ }
+  function renderCode(cells) {
+    document.querySelectorAll('details.py').forEach(d => {
+      // A panel can hold several cells (data-cell="model embedding")
+      const cs = d.dataset.cell.split(' ').map(id => cells.find(x => x.id === id)).filter(Boolean);
+      if (!cs.length) return;   // its section is hidden: nothing to compute with
+      const wasOpen = d.open;
+      const kids = [el('summary', { class: 'py-head' }, el('span', { class: 'oc' }), el('span', { class: 'lang' }, 'TensorFlow / Keras'))];
+      for (const c of cs) {
+        if (c.train) kids.push(el('p', { class: 'py-note' }, 'Output from the training run that produced these weights. Rerunning takes about half a minute; the numbers can differ slightly between machines.'));
+        kids.push(el('div', { class: 'pycell', 'data-id': c.id }, el('pre', { class: 'code' }, c.code), el('pre', { class: 'out' }, c.out)));
+      }
+      d.replaceChildren(...kids);
+      d.open = wasOpen;
+    });
+  }
+  function setAllCode(open) {
+    codeOpen = open;
+    document.querySelectorAll('details.py').forEach(d => { d.open = open; });
+    $('code-all').textContent = open ? 'Hide all code' : 'Show all code';
+    try { localStorage.setItem(CODE_KEY, open ? '1' : '0'); } catch (e) { /* not remembered */ }
+  }
+
+  // ---- Static parts: data and labels (they don't depend on the selected line) ----
+  function renderStatic() {
+    $('params-note').textContent = `Here: ${W.params.toLocaleString('en')} weights, trained for ${W.epochs} epochs on the legitimate training lines.`;
+    $('raw').replaceChildren(...D.raw.flatMap(line => {
+      const m = line.match(/^(\w{3} +\d+ [\d:]+ \S+ [^:]+: )(.*)$/);
+      return m ? [el('span', { class: 'pre' }, m[1]), m[2] + '\n'] : [line + '\n'];
+    }));
+    const progs = Object.entries(D.programs);
+    $('programs').replaceChildren(...progs.map(([name, k]) => el('div', { class: 'bar-row' + (name === 'sshd' ? ' win' : '') },
+      el('span', { class: 'n' }, name), el('div', { class: 'track' }, el('div', { class: 'fillbar', style: `width:${(k / progs[0][1] * 100).toFixed(1)}%` })), el('span', { class: 'p' }, String(k)))));
+
+    const labs = D.lines.map(r => r[1]);
+    const count = name => labs.filter(l => l === name).length;
+    const RULE_TEXT = {
+      legit: 'Accepted password or key, session opened or closed, disconnected by user, Starting session',
+      attack: 'Failed password, Invalid user, anything [preauth], authentication failure, maximum authentication attempts, Bad protocol version, Did not receive identification',
+      other: 'Everything else: server start and stop, debug messages',
+    };
+    $('t-rules').replaceChildren(el('tr', {}, el('th', { scope: 'col' }, 'label'), el('th', { scope: 'col' }, 'messages that contain'), el('th', { scope: 'col' }, 'lines')),
+      ...['legit', 'attack', 'other'].map(name => el('tr', {}, el('td', {}, name), el('td', {}, RULE_TEXT[name]), el('td', { class: 'num' }, String(count(name))))));
+    $('balance').replaceChildren(...['legit', 'attack', 'other'].map(name => el('div', { class: 'bar-row' + (name === 'attack' ? ' win' : '') },
+      el('span', { class: 'n' }, name), el('div', { class: 'track' }, el('div', { class: 'fillbar', style: `width:${(count(name) / labs.length * 100).toFixed(1)}%` })), el('span', { class: 'p' }, pct(count(name) / labs.length)))));
+    const splits = D.lines.reduce((s, r) => { s[r[2]] = (s[r[2]] || 0) + (r[1] === 'legit' ? 1 : 0); return s; }, {});
+    $('split').replaceChildren(
+      el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Train'), el('span', { class: 'v' }, String(splits.train)), el('span', { class: 's' }, 'legitimate lines')),
+      el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Validation'), el('span', { class: 'v' }, String(splits.val)), el('span', { class: 's' }, 'legitimate lines')),
+      el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Test'), el('span', { class: 'v' }, String(splits.test + count('attack'))), el('span', { class: 's' }, `${splits.test} legitimate + ${count('attack')} attack`)),
+    );
+    matrixTable($('t-E'), W.weights[0], { rowLabels: W.vocab.map(c => (c.length > 1 ? c : vis(c))), colLabels: [...Array(8).keys()].map(String) });
+    renderLoss();
+  }
+
+  // ---- Training curve: log-scale y, training solid, validation dashed, with an epoch readout on hover ----
+  function renderLoss() {
+    const svg = $('loss'), { loss, val_loss } = W.history;
+    const x0 = 44, x1 = 590, y0 = 10, y1 = 160, n = loss.length;
+    const lo = Math.log10(0.05), hi = Math.log10(Math.max(...loss, ...val_loss) * 1.1);
+    const X = i => x0 + (x1 - x0) * i / (n - 1), Y = v => y1 - (y1 - y0) * (Math.log10(v) - lo) / (hi - lo);
+    const pts = a => a.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    svg.replaceChildren();
+    for (const t of [0.1, 0.3, 1, 3]) {
+      if (Math.log10(t) > hi) continue;
+      svg.append(svgEl('line', { class: 'ax', x1: x0, x2: x1, y1: Y(t), y2: Y(t), 'stroke-dasharray': '2 4' }), svgEl('text', { x: x0 - 6, y: Y(t) + 4, 'text-anchor': 'end' }, String(t)));
+    }
+    svg.append(svgEl('line', { class: 'ax', x1: x0, x2: x1, y1: y1, y2: y1 }),
+      svgEl('text', { x: x0, y: y1 + 18 }, 'epoch 1'), svgEl('text', { x: x1, y: y1 + 18, 'text-anchor': 'end' }, `epoch ${n}`),
+      svgEl('text', { x: (x0 + x1) / 2, y: y1 + 18, 'text-anchor': 'middle' }, 'loss, log scale'),
+      svgEl('polyline', { class: 'ln', points: pts(loss) }), svgEl('polyline', { class: 'val', points: pts(val_loss) }),
+      svgEl('text', { class: 'lab', x: X(n - 1) - 4, y: Y(loss[n - 1]) + 16, 'text-anchor': 'end' }, `training ${loss[n - 1].toFixed(3)}`),
+      svgEl('text', { class: 'lab', x: X(n - 1) - 4, y: Y(val_loss[n - 1]) - 8, 'text-anchor': 'end' }, `validation ${val_loss[n - 1].toFixed(3)}`));
+    const cross = svgEl('line', { class: 'cross', y1: y0, y2: y1, visibility: 'hidden' });
+    svg.append(cross);
+    const legend = () => [el('span', {}, el('i', { class: 'lg trn' }), 'training loss'), el('span', {}, el('i', { class: 'lg val' }), 'validation loss')];
+    $('loss-legend').replaceChildren(...legend());
+    const move = e => {
+      const box = svg.getBoundingClientRect();
+      if (!box.width) return;
+      const i = Math.round(((e.clientX - box.left) / box.width * 600 - x0) / (x1 - x0) * (n - 1));
+      if (i < 0 || i >= n) return;
+      cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i)); cross.setAttribute('visibility', 'visible');
+      $('loss-legend').replaceChildren(...legend(), el('span', {}, `epoch ${i + 1}: training ${loss[i].toFixed(3)}, validation ${val_loss[i].toFixed(3)}`));
+    };
+    svg.addEventListener('pointermove', move);
+    svg.addEventListener('pointerleave', () => { cross.setAttribute('visibility', 'hidden'); $('loss-legend').replaceChildren(...legend()); });
+  }
+
+  // ---- Histogram: one small panel per group, same x scale, threshold across all ----
+  function renderHist() {
+    const svg = $('hist'), thr = state.threshold;
+    const x0 = 10, x1 = 590, BIN = 0.5, MAXS = 18, PH = 56;
+    const X = s => x0 + (x1 - x0) * Math.min(s, MAXS) / MAXS;
+    const groups = [
+      ['Legitimate, validation + test', D.lines.filter(r => r[1] === 'legit' && (r[2] === 'val' || r[2] === 'test'))],
+      ['Attack', D.lines.filter(r => r[1] === 'attack')],
+      ['Other', D.lines.filter(r => r[1] === 'other')],
+    ];
+    svg.replaceChildren();
+    groups.forEach(([name, rows], g) => {
+      const top = 38 + g * (PH + 24), base = top + PH;
+      const bins = new Array(Math.ceil(MAXS / BIN)).fill(0);
+      for (const r of rows) bins[Math.min(bins.length - 1, Math.floor(r[3] / BIN))]++;
+      const max = Math.max(...bins);
+      svg.append(svgEl('text', { class: 'lab', x: x0, y: top - 2 }, `${name} (${rows.length} lines, tallest bar ${max})`),
+        svgEl('line', { class: 'ax', x1: x0, x2: x1, y1: base, y2: base }));
+      bins.forEach((k, b) => {
+        if (!k) return;
+        const h = Math.max(2, (PH - 12) * k / max);
+        const rect = svgEl('rect', { class: (b + 0.5) * BIN > thr ? 'b-on' : 'b-off', x: X(b * BIN) + 1, y: base - h, width: X(BIN) - x0 - 2, height: h, rx: 2 });
+        rect.append(svgEl('title', {}, `${name}: ${k} lines scoring ${b * BIN}–${(b + 1) * BIN}`));
+        svg.append(rect);
+      });
+    });
+    const yEnd = 38 + 3 * (PH + 24) - 18;
+    for (let s = 0; s < MAXS; s += 3) svg.append(svgEl('text', { x: X(s), y: yEnd + 14, 'text-anchor': s === 0 ? 'start' : 'middle' }, String(s)));
+    svg.append(svgEl('text', { x: x1, y: yEnd + 14, 'text-anchor': 'end' }, 'score'),
+      svgEl('line', { class: 'thr', x1: X(thr), x2: X(thr), y1: 16, y2: yEnd }),
+      svgEl('text', { class: 'lab', x: X(thr), y: 11, 'text-anchor': thr < 1.5 ? 'start' : thr > 16 ? 'end' : 'middle' }, `threshold ${thr.toFixed(2)}`));
+  }
+
+  // ---- Lists of lines (deduplicated), each with its reconstruction computed live ----
+  function dedup(rows) {
+    const seen = new Map();
+    for (const r of rows) {
+      if (seen.has(r[0])) seen.get(r[0]).k++;
+      else seen.set(r[0], { msg: r[0], label: r[1], score: r[3], k: 1 });
+    }
+    return [...seen.values()];
+  }
+  function item(x) {
+    const r = M.run(x.msg, W);
+    return el('li', { class: 'item' },
+      el('div', { class: 'meta' }, el('span', { class: 'tag ' + (x.label === 'attack' ? 't-choice' : x.label === 'legit' ? 't-data' : 't-calc') }, x.label),
+        el('span', {}, 'score ', el('span', { class: 'sc' }, x.score.toFixed(2))), x.k > 1 ? el('span', {}, `×${x.k} in the log`) : '',
+        el('button', { onclick: () => { setText(x.msg); $('s3').scrollIntoView?.({ behavior: 'smooth' }); } }, 'Inspect')),
+      pairView(r));
+  }
+  function renderLists() {
+    const thr = state.threshold;
+    const test = D.lines.filter(r => r[2] === 'test');
+    const lists = {
+      flagged: dedup(test.filter(r => r[3] > thr)).sort((a, b) => b.score - a.score),
+      legit: dedup(test.filter(r => r[1] === 'legit' && r[3] <= thr)),
+      false: dedup(test.filter(r => r[1] === 'legit' && r[3] > thr)).sort((a, b) => b.score - a.score),
+      missed: dedup(test.filter(r => r[1] === 'attack' && r[3] <= thr)).sort((a, b) => b.score - a.score),
+      other: dedup(D.lines.filter(r => r[1] === 'other')).sort((a, b) => b.score - a.score),
+    };
+    for (const [key, xs] of Object.entries(lists)) {
+      const ul = $('l-' + key), k = state.shown[key];
+      ul.replaceChildren(...(xs.length ? xs.slice(0, k).map(item) : [el('li', { class: 'note' }, 'None at this threshold.')]));
+      document.querySelector(`[data-more="${key}"]`).hidden = xs.length <= k;
+    }
+    $('l-brute').replaceChildren(...dedup(D.lines.filter(r => /^Accepted password for elastic_user_0 from 24\.151\.103\.17/.test(r[0]))).slice(0, 2).map(item));
+  }
+
+  function renderCounts() {
+    const d = M.detect(D.lines, state.threshold);
+    const metric = (k, v, s) => el('div', { class: 'metric' }, el('span', { class: 'k' }, k), el('span', { class: 'v' }, v), el('span', { class: 's' }, s));
+    $('counts').replaceChildren(
+      metric('Caught', String(d.caught), `of ${d.attack[1]} attack lines`),
+      metric('Missed', String(d.missed), 'attack lines below the threshold'),
+      metric('False alarms', String(d.falseAlarms), `of ${d.testLegit[1]} legitimate test lines`),
+      metric('Precision', d.precision.toFixed(3), 'flagged lines that are attacks'),
+      metric('Recall', d.recall.toFixed(3), 'attack lines that are flagged'),
+    );
+  }
+
+  // ---- Render everything that depends on the selected line ----
+  let cells = [];
+  function render() {
+    const r = M.run(state.text, W);
+    if (state.pos === null || state.pos >= r.n) state.pos = r.n ? r.nll.indexOf(Math.max(...r.nll)) : 0;
+    const pos = state.pos;
+
+    if (document.activeElement !== $('text')) $('text').value = state.text;
+    const preset = PRESETS.findIndex(p => p[1] === state.text);
+    $('preset').value = preset < 0 ? 'custom' : String(preset);
+
+    // 3. Characters
+    const known = new Set(W.vocab);
+    $('chips').replaceChildren(...r.chars.map((c, t) => el('button', {
+      class: 'chip' + (known.has(c) ? '' : ' unk'), 'aria-pressed': String(t === pos), 'aria-label': `position ${t}, ${vis(c)}, id ${r.ids[t]}`, onclick: () => select(t),
+    }, vis(c), el('span', { class: 'id' }, String(r.ids[t])))));
+    const unknown = r.chars.filter(c => !known.has(c));
+    $('enc-note').textContent = r.n
+      ? `${r.n} characters → ids` + (r.truncated ? ` (cut at ${W.L}: the rest is ignored)` : '') + `, then ${W.L - r.n} × padding (id 0). ` +
+        (unknown.length ? `${unknown.length} character${unknown.length > 1 ? 's' : ''} never seen in training → id 1.` : 'Every character was seen in training.')
+      : 'No characters: the line is 128 × padding.';
+
+    cells = M.pythonCells(state.text, W, D, { threshold: state.threshold, pos });
+    renderCode(cells);
+
+    $('steps').hidden = r.n === 0;
+    $('empty-note').hidden = r.n > 0;
+    if (r.n) {
+      const c = r.chars[pos];
+      // 4. Embedding
+      strip($('v-emb'), r, [{ name: 'embedding (8 numbers per character)', a: r.emb }]);
+      const show = [...new Set([0, 1, 2, 3, 4, pos])].filter(t => t < r.n);
+      matrixTable($('t-emb'), show.map(t => r.emb[t]), { rowLabels: show.map(t => `${t} ${vis(r.chars[t])}`), colLabels: [...Array(8).keys()].map(String), focus: [show.indexOf(pos)], digits: 2 });
+      const E = W.weights[0], id = r.ids[pos];
+      const cos = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0) / (Math.hypot(...a) * Math.hypot(...b) || 1);
+      const near = W.vocab.map((ch, j) => ({ ch, s: cos(E[id], E[j]) })).filter((x, j) => j > 1 && j !== id).sort((a, b) => b.s - a.s).slice(0, 5);
+      $('near').replaceChildren(el('b', {}, `“${vis(c)}”`), id === 1 ? ' is unknown: every unseen character shares this one row, which training never saw as a target. Most similar rows: ' : ' (position ' + pos + '). Characters with the most similar rows: ',
+        near.map(x => `${vis(x.ch)} ${fmt(x.s)}`).join(', '), '.', /[0-9]/.test(c) ? ' Digits end up close together: the model has learned that one digit can stand in for another.' : '');
+
+      // 5. Encoder
+      const lo = Math.max(0, pos - 2), hi = Math.min(r.n - 1, pos + 2);
+      $('win').replaceChildren('Position ', el('b', {}, String(pos)), ' of enc_conv1 sees characters ', el('b', {}, `${lo}–${hi}: “${r.chars.slice(lo, hi + 1).join('')}”`),
+        `. Its 16 values: ${r.enc1[pos].map(v => fmt(v, 1)).join(' ')}.`);
+      strip($('v-enc'), r, [{ name: 'enc_conv1: 16 filters, 128 positions', a: r.enc1 }, { name: 'enc_conv2: 4 filters, 64 positions', a: r.enc2 }, { name: 'bottleneck: 4 numbers per 4 characters', a: r.z }]);
+      $('squeeze').textContent = `The line went in as ${W.L} × 8 = ${W.L * 8} embedding numbers; the bottleneck keeps ${r.z.length} × ${r.z[0].length} = ${r.z.length * r.z[0].length}. Each bottleneck position has 4 numbers to describe 4 characters and their context, so it can only keep what it can predict from what it has seen before.`;
+
+      // 6. Decoder
+      const conf = r.probs.map((p, t) => p[r.ids[t]]);
+      strip($('v-dec'), r, [{ name: 'dec_conv1: 4 filters, 64 positions', a: r.dec1 }, { name: 'dec_conv2: 16 filters, 128 positions', a: r.dec2 }],
+        { conf: { name: 'probability of the true character', values: conf } });
+      $('top-cap').replaceChildren('Position ', el('b', {}, String(pos)), ', true character ', el('b', {}, `“${vis(c)}”`), ': the 5 most likely characters');
+      $('top').replaceChildren(...M.topk(r.probs[pos], W.vocab, 5).map(x => el('div', { class: 'bar-row' + (x.i === r.ids[pos] ? ' win' : '') },
+        el('span', { class: 'n' }, `${x.c.length > 1 ? x.c : '“' + vis(x.c) + '”'}${x.i === r.ids[pos] ? ' (true)' : ''}`),
+        el('div', { class: 'track' }, el('div', { class: 'fillbar', style: `width:${(x.p * 100).toFixed(1)}%` })),
+        el('span', { class: 'p' }, (x.p * 100).toFixed(1) + '%'))));
+
+      // 7. Reconstruction
+      $('pair').replaceWith(Object.assign(pairView(r, { interactive: true }), { id: 'pair' }));
+      const anomaly = r.score > state.threshold;
+      const wrong = r.recon.filter((x, t) => x !== r.chars[t]).length;
+      $('verdict').replaceChildren(
+        el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Score'), el('span', { class: 'v' }, r.score.toFixed(3)), el('span', { class: 's' }, 'mean error per character')),
+        el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Threshold'), el('span', { class: 'v' }, state.threshold.toFixed(2)), el('span', { class: 's' }, 'set in step 9')),
+        el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Verdict'), el('span', { class: 'v' }, el('span', { class: 'verdict ' + (anomaly ? 'anom' : 'norm') }, anomaly ? 'Anomaly' : 'Normal')), el('span', { class: 's' }, `${wrong} of ${r.n} characters rebuilt wrong`)),
+      );
+      $('verdict-note').textContent = anomaly
+        ? 'The model couldn\'t rebuild this line: it doesn\'t fit the patterns of the normal lines it was trained on.'
+        : 'The model rebuilt this line well: it fits the patterns of the normal lines. The mistakes are where nothing could be predicted, such as port numbers.';
+    }
+
+    $('thr').value = String(state.threshold);
+    $('thr-out').textContent = state.threshold.toFixed(2);
+    renderHist();
+    renderCounts();
+    renderLists();
+  }
+
+  // ---- Controls ----
+  function select(t) { state.pos = t; render(); }
+  function setText(text) { state.text = text; state.pos = null; render(); }
+  $('preset').append(...PRESETS.map(([name], i) => el('option', { value: String(i) }, name)), el('option', { value: 'custom', disabled: '' }, 'Your own text'));
+  $('preset').addEventListener('change', e => { if (e.target.value !== 'custom') setText(PRESETS[Number(e.target.value)][1]); });
+  $('text').addEventListener('input', e => setText(e.target.value));
+  $('thr').addEventListener('input', e => { state.threshold = Number(e.target.value); render(); });
+  $('thr-reset').addEventListener('click', () => { state.threshold = W.threshold; render(); });
+  document.querySelectorAll('[data-more]').forEach(b => b.addEventListener('click', () => { state.shown[b.dataset.more] += PAGE; renderLists(); }));
+  $('code-all').addEventListener('click', () => setAllCode(!codeOpen));
+  $('copy').addEventListener('click', async () => {
+    const script = M.fullScript(cells);
+    try {
+      await navigator.clipboard.writeText(script);
+      $('toast').textContent = 'Copied';
+    } catch (e) {
+      $('copy-fallback').hidden = false;
+      $('copy-fallback').value = script;
+      $('copy-fallback').select();
+      $('toast').textContent = 'Select and copy';
+    }
+    setTimeout(() => { $('toast').textContent = ''; }, 2000);
+  });
+
+  renderStatic();
+  render();
+  setAllCode(codeOpen);
+})();
+</script>
+</body>
+</html>
