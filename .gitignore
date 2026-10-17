@@ -6,3 +6,6 @@ __pycache__/
 cnn-env/
 **/tools/nbcells.json
 .DS_Store
+ml-ai/image-recognition-walkthrough/data/candidates/
+ml-ai/image-recognition-walkthrough/tests/tfjs_ref.json
+.venv-export/

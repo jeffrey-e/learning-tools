@@ -1,0 +1,14 @@
+{
+  "name": "image-recognition-walkthrough",
+  "private": true,
+  "description": "Verification harness for the Image Recognition Walkthrough page. The page itself needs no build step.",
+  "scripts": {
+    "test": "node tests/page_smoke.js && node tests/dump_states.js && python3 tests/check_outputs.py && node tests/check_tfjs.js",
+    "test:quick": "node tests/page_smoke.js && node tests/dump_states.js && python3 tests/check_outputs.py --quick && node tests/check_tfjs.js",
+    "generate": "node tools/generate_python.js"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs": "4.22.0",
+    "playwright": "1.64.0"
+  }
+}

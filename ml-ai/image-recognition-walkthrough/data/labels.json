@@ -1,0 +1,3546 @@
+{
+ "c0000": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0001": {
+  "by": "user",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0002": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: seashore)"
+ },
+ "c0003": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0004": {
+  "by": "user",
+  "label": "drop",
+  "note": "no dog seen (top: airliner)"
+ },
+ "c0005": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: hay)"
+ },
+ "c0006": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: shower curtain)"
+ },
+ "c0007": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: menu)"
+ },
+ "c0008": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0009": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0010": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0011": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0012": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0013": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0014": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0015": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0016": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0017": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0018": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowmobile)"
+ },
+ "c0019": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0020": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0021": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0022": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: wing)"
+ },
+ "c0023": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: warplane)"
+ },
+ "c0024": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0025": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0026": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: crash helmet)"
+ },
+ "c0027": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0028": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: sleeping bag)"
+ },
+ "c0029": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: sleeping bag)"
+ },
+ "c0030": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0031": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0032": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0033": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowmobile)"
+ },
+ "c0034": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowmobile)"
+ },
+ "c0035": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0036": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0037": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowmobile)"
+ },
+ "c0038": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0039": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0040": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0041": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0042": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0043": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0044": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0045": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: tick)"
+ },
+ "c0046": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: jersey)"
+ },
+ "c0047": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0048": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0049": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0050": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0051": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0052": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0053": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0054": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0055": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0056": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: jeep)"
+ },
+ "c0057": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: stretcher)"
+ },
+ "c0058": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0059": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowplow)"
+ },
+ "c0060": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowmobile)"
+ },
+ "c0061": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowplow)"
+ },
+ "c0062": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: airship)"
+ },
+ "c0063": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: warplane)"
+ },
+ "c0064": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0065": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: dogsled)"
+ },
+ "c0066": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: warplane)"
+ },
+ "c0067": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: warplane)"
+ },
+ "c0068": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0069": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0070": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0071": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: umbrella)"
+ },
+ "c0072": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0073": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0074": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0075": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0076": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0077": {
+  "by": "user",
+  "label": "malamute"
+ },
+ "c0078": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0079": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0080": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0081": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0082": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0083": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0084": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0085": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0086": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0087": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0088": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0089": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0090": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0091": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0092": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0093": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0094": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0095": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0096": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: dogsled)"
+ },
+ "c0097": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0098": {
+  "by": "first-pass",
+  "label": "malamute",
+  "note": "husky-like: check the breed"
+ },
+ "c0099": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0100": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0101": {
+  "by": "user",
+  "label": "drop",
+  "note": "husky-like: check the breed"
+ },
+ "c0102": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "drawing, graphic, statue or stamp"
+ },
+ "c0103": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0104": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0105": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0106": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0107": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: space shuttle)"
+ },
+ "c0108": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: balloon)"
+ },
+ "c0109": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: oxygen mask)"
+ },
+ "c0110": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0111": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0112": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0113": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0114": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0115": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0116": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0117": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0118": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0119": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0120": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0121": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0122": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0123": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0124": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0125": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0126": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0127": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0128": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0129": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0130": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0131": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0132": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0133": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0134": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0135": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0136": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0137": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0138": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0139": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0140": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0141": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0142": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0143": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0144": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0145": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0146": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0147": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0148": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0149": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0150": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0151": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0152": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0153": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0154": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0155": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0156": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0157": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0158": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0159": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0160": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0161": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "drawing, graphic, statue or stamp"
+ },
+ "c0162": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0163": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0164": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0165": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0166": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0167": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0168": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0169": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0170": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0171": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0172": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0173": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0174": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0175": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0176": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: book jacket)"
+ },
+ "c0177": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0178": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0179": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0180": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0181": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0182": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0183": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0184": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0185": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0186": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0187": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0188": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0189": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0190": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0191": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0192": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: lynx)"
+ },
+ "c0193": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0194": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: academic gown)"
+ },
+ "c0195": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0196": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0197": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0198": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0199": {
+  "by": "user",
+  "label": "malamute",
+  "note": "found under both breeds"
+ },
+ "c0200": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: timber wolf)"
+ },
+ "c0201": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0202": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0203": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0204": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0205": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0206": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0207": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0208": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0209": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0210": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0211": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: warplane)"
+ },
+ "c0212": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0213": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0214": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: assault rifle)"
+ },
+ "c0215": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0216": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0217": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0218": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0219": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0220": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0221": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0222": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0223": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0224": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0225": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0226": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0227": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0228": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0229": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0230": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "drawing, graphic, statue or stamp"
+ },
+ "c0231": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0232": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0233": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: mountain bike)"
+ },
+ "c0234": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0235": {
+  "by": "user",
+  "label": "drop",
+  "note": "husky-like: check the breed"
+ },
+ "c0236": {
+  "by": "user",
+  "label": "drop",
+  "note": "white dog: check the breed"
+ },
+ "c0237": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0238": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0239": {
+  "by": "user",
+  "label": "husky"
+ },
+ "c0240": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0241": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0242": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0243": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0244": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0245": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0246": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0247": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0248": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: birdhouse)"
+ },
+ "c0249": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0250": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0251": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0252": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0253": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0254": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0255": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0256": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0257": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0258": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: assault rifle)"
+ },
+ "c0259": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: comic book)"
+ },
+ "c0260": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: oxygen mask)"
+ },
+ "c0261": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0262": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0263": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: rifle)"
+ },
+ "c0264": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0265": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "drawing, graphic, statue or stamp"
+ },
+ "c0266": {
+  "by": "user",
+  "label": "drop",
+  "note": "husky-like: check the breed"
+ },
+ "c0267": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "wolf-like or unclear"
+ },
+ "c0268": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0269": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0270": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0271": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0272": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0273": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0274": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0275": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "wolf-like or unclear"
+ },
+ "c0276": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0277": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0278": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0279": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: wreck)"
+ },
+ "c0280": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0281": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0282": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0283": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: stretcher)"
+ },
+ "c0284": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: balloon)"
+ },
+ "c0285": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0286": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0287": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0288": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: tabby)"
+ },
+ "c0289": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0290": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0291": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0292": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0293": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0294": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0295": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: dogsled)"
+ },
+ "c0296": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0297": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowplow)"
+ },
+ "c0298": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0299": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0300": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0301": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0302": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0303": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0304": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0305": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0306": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0307": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0308": {
+  "by": "first-pass",
+  "label": "malamute",
+  "note": "from search only: check"
+ },
+ "c0309": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0310": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0311": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0312": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0313": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0314": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0315": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0316": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0317": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0318": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0319": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0320": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0321": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0322": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: minibus)"
+ },
+ "c0323": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0324": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0325": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0326": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0327": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: dogsled)"
+ },
+ "c0328": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0329": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0330": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0331": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0332": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0333": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0334": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0335": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0336": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0337": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0338": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0339": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0340": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0341": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0342": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0343": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0344": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0345": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0346": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0347": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0348": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0349": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0350": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0351": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0352": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0353": {
+  "by": "first-pass",
+  "label": "malamute",
+  "note": "from search only: check"
+ },
+ "c0354": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0355": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0356": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0357": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0358": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0359": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0360": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0361": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0362": {
+  "by": "first-pass",
+  "label": "malamute",
+  "note": "from search only: check"
+ },
+ "c0363": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0364": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0365": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0366": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0367": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0368": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0369": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0370": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0371": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0372": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0373": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0374": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0375": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0376": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0377": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0378": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0379": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0380": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0381": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0382": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0383": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0384": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0385": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0386": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0387": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0388": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0389": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: web site)"
+ },
+ "c0390": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0391": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0392": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0393": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0394": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: timber wolf)"
+ },
+ "c0395": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: timber wolf)"
+ },
+ "c0396": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0397": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0398": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0399": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0400": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0401": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0402": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0403": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0404": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0405": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0406": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0407": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0408": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0409": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0410": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0411": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0412": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0413": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0414": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0415": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: park bench)"
+ },
+ "c0416": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0417": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0418": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0419": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0420": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0421": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0422": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0423": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0424": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0425": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0426": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0427": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0428": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0429": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0430": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0431": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0432": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: warplane)"
+ },
+ "c0433": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0434": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0435": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0436": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0437": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0438": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0439": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0440": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0441": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0442": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "wolf-like or unclear"
+ },
+ "c0443": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0444": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0445": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0446": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0447": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0448": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "wolf-like or unclear"
+ },
+ "c0449": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0450": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0451": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: shovel)"
+ },
+ "c0452": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0453": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: tray)"
+ },
+ "c0454": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0455": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0456": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0457": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0458": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0459": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: racer)"
+ },
+ "c0460": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: warplane)"
+ },
+ "c0461": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: sea lion)"
+ },
+ "c0462": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: steam locomotive)"
+ },
+ "c0463": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: stretcher)"
+ },
+ "c0464": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: assault rifle)"
+ },
+ "c0465": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0466": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: hyena)"
+ },
+ "c0467": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0468": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0469": {
+  "by": "first-pass",
+  "label": "malamute",
+  "note": "from search only: check"
+ },
+ "c0470": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0471": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0472": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0473": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: dogsled)"
+ },
+ "c0474": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: dogsled)"
+ },
+ "c0475": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: dam)"
+ },
+ "c0476": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0477": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: pickelhaube)"
+ },
+ "c0478": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0479": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0480": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0481": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0482": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0483": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0484": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0485": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0486": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0487": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0488": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0489": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0490": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0491": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0492": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0493": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0494": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0495": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: shovel)"
+ },
+ "c0496": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0497": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0498": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0499": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0500": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0501": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0502": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0503": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: oxygen mask)"
+ },
+ "c0504": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0505": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0506": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0507": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0508": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0509": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0510": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0511": {
+  "by": "first-pass",
+  "label": "malamute",
+  "note": "from search only: check"
+ },
+ "c0512": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0513": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0514": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0515": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0516": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0517": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0518": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0519": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0520": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0521": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0522": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0523": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0524": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0525": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0526": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0527": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0528": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0529": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0530": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: mountain tent)"
+ },
+ "c0531": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0532": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0533": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0534": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0535": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0536": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "drawing, graphic, statue or stamp"
+ },
+ "c0537": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0538": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0539": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0540": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0541": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0542": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0543": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0544": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0545": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0546": {
+  "by": "first-pass",
+  "label": "malamute",
+  "note": "from search only: check"
+ },
+ "c0547": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0548": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0549": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0550": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0551": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0552": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0553": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0554": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0555": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0556": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0557": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0558": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0559": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: dogsled)"
+ },
+ "c0560": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0561": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0562": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0563": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0564": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0565": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0566": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0567": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0568": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0569": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0570": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0571": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0572": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0573": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0574": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0575": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "found under both breeds"
+ },
+ "c0576": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0577": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0578": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0579": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0580": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0581": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0582": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0583": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0584": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0585": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0586": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0587": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0588": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0589": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0590": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0591": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0592": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0593": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0594": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0595": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0596": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0597": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0598": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0599": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0600": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0601": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0602": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: steel arch bridge)"
+ },
+ "c0603": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0604": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0605": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0606": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0607": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0608": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0609": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0610": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0611": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "wolf-like or unclear"
+ },
+ "c0612": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0613": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0614": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0615": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0616": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0617": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0618": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0619": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0620": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0621": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0622": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0623": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0624": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0625": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0626": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0627": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0628": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0629": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0630": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0631": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0632": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0633": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0634": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0635": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0636": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0637": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0638": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0639": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0640": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0641": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0642": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0643": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0644": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0645": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "close-up of eyes or fur only"
+ },
+ "c0646": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0647": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0648": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0649": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0650": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: electric fan)"
+ },
+ "c0651": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0652": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0653": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0654": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0655": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0656": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "found under both breeds"
+ },
+ "c0657": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0658": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0659": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0660": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0661": {
+  "by": "first-pass",
+  "label": "malamute",
+  "note": "from search only: check"
+ },
+ "c0662": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0663": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: worm fence)"
+ },
+ "c0664": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0665": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: revolver)"
+ },
+ "c0666": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0667": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0668": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: parachute)"
+ },
+ "c0669": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "drawing, graphic, statue or stamp"
+ },
+ "c0670": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: pirate)"
+ },
+ "c0671": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0672": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0673": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0674": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0675": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0676": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0677": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0678": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0679": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0680": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0681": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0682": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0683": {
+  "by": "first-pass",
+  "label": "malamute"
+ },
+ "c0684": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0685": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: torch)"
+ },
+ "c0686": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: warplane)"
+ },
+ "c0687": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0688": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: alp)"
+ },
+ "c0689": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0690": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0691": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: ski)"
+ },
+ "c0692": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: puck)"
+ },
+ "c0693": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: snowmobile)"
+ },
+ "c0694": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: assault rifle)"
+ },
+ "c0695": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: sewing machine)"
+ },
+ "c0696": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0697": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: assault rifle)"
+ },
+ "c0698": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: bulletproof vest)"
+ },
+ "c0699": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: rifle)"
+ },
+ "c0700": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: assault rifle)"
+ },
+ "c0701": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: sax)"
+ },
+ "c0702": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: military uniform)"
+ },
+ "c0703": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: assault rifle)"
+ },
+ "c0704": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: assault rifle)"
+ },
+ "c0705": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: geyser)"
+ },
+ "c0706": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0707": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0708": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0709": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: breakwater)"
+ },
+ "c0710": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0711": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0712": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0713": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0714": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0715": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "historical or black-and-white"
+ },
+ "c0716": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0717": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0718": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0719": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0720": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0721": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0722": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0723": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0724": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0725": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0726": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0727": {
+  "by": "user",
+  "label": "drop",
+  "note": "from search only: check"
+ },
+ "c0728": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0729": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0730": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0731": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: jinrikisha)"
+ },
+ "c0732": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0733": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0734": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0735": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0736": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0737": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0738": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0739": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0740": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0741": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0742": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0743": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0744": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: volcano)"
+ },
+ "c0745": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0746": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0747": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0748": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0749": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0750": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0751": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0752": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0753": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0754": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0755": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0756": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0757": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0758": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0759": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: park bench)"
+ },
+ "c0760": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "another breed"
+ },
+ "c0761": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0762": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0763": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0764": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0765": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "drawing, graphic, statue or stamp"
+ },
+ "c0766": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0767": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0768": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0769": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0770": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0771": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0772": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0773": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0774": {
+  "by": "user",
+  "label": "malamute"
+ },
+ "c0775": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "Alaskan husky sled dogs or a sled team"
+ },
+ "c0776": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0777": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "several dogs or people, or the dog too small"
+ },
+ "c0778": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0779": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0780": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0781": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: lakeside)"
+ },
+ "c0782": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0783": {
+  "by": "user",
+  "label": "drop"
+ },
+ "c0784": {
+  "by": "user",
+  "label": "malamute"
+ },
+ "c0785": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0786": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0787": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0788": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0789": {
+  "by": "first-pass",
+  "label": "husky"
+ },
+ "c0790": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: mobile home)"
+ },
+ "c0791": {
+  "by": "first-pass",
+  "label": "drop",
+  "note": "no dog seen (top: half track)"
+ },
+ "c0792": {
+  "by": "first-pass",
+  "label": "husky"
+ }
+}

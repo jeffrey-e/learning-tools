@@ -1,0 +1,4 @@
+# Tested with Python 3.11, NumPy 2.4, TensorFlow 2.21 and Pillow 13 (October 2026).
+numpy>=2.0
+tensorflow>=2.16
+pillow>=10

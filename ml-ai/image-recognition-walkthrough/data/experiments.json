@@ -1,0 +1,318 @@
+{
+ "scratch": [
+  {
+   "id": "A1",
+   "name": "First try",
+   "why": "A plain small CNN with augmentation and class weights. The loss barely moves from 0.69, the loss of guessing.",
+   "config": {
+    "bn": false,
+    "size": 224,
+    "widths": [
+     16,
+     32,
+     64,
+     128
+    ],
+    "lr": 0.001,
+    "epochs": 60,
+    "augment": true,
+    "class_weight": true
+   },
+   "params": 97698,
+   "final_loss": 0.657,
+   "train": {
+    "accuracy": 0.513,
+    "balanced": 0.583
+   },
+   "val": {
+    "accuracy": 0.377,
+    "balanced": 0.43
+   }
+  },
+  {
+   "id": "A2",
+   "name": "+ batch normalisation",
+   "why": "Normalising each layer's output usually helps a small network start learning.",
+   "config": {
+    "bn": true,
+    "size": 224,
+    "widths": [
+     16,
+     32,
+     64,
+     128
+    ],
+    "lr": 0.001,
+    "epochs": 60,
+    "augment": true,
+    "class_weight": true
+   },
+   "params": 98418,
+   "final_loss": 0.496,
+   "train": {
+    "accuracy": 0.628,
+    "balanced": 0.691
+   },
+   "val": {
+    "accuracy": 0.656,
+    "balanced": 0.659
+   }
+  },
+  {
+   "id": "A3",
+   "name": "+ 128px input, 100 epochs",
+   "why": "Fewer pixels: faster, and less detail to overfit on.",
+   "config": {
+    "bn": true,
+    "size": 128,
+    "widths": [
+     16,
+     32,
+     64,
+     128
+    ],
+    "lr": 0.001,
+    "epochs": 100,
+    "augment": true,
+    "class_weight": true
+   },
+   "params": 98418,
+   "final_loss": 0.347,
+   "train": {
+    "accuracy": 0.801,
+    "balanced": 0.605
+   },
+   "val": {
+    "accuracy": 0.738,
+    "balanced": 0.489
+   }
+  },
+  {
+   "id": "A4",
+   "name": "+ 4\u00d7 wider",
+   "why": "More filters per layer: is the network too small?",
+   "config": {
+    "bn": true,
+    "size": 128,
+    "widths": [
+     32,
+     64,
+     128,
+     256
+    ],
+    "lr": 0.001,
+    "epochs": 100,
+    "augment": true,
+    "class_weight": true
+   },
+   "params": 390370,
+   "final_loss": 0.329,
+   "train": {
+    "accuracy": 0.866,
+    "balanced": 0.756
+   },
+   "val": {
+    "accuracy": 0.787,
+    "balanced": 0.589
+   }
+  },
+  {
+   "id": "A5",
+   "name": "Lower learning rate, no augmentation",
+   "why": "A test, not a candidate: can it at least memorise the training photos?",
+   "config": {
+    "bn": true,
+    "size": 128,
+    "widths": [
+     16,
+     32,
+     64,
+     128
+    ],
+    "lr": 0.0003,
+    "epochs": 150,
+    "augment": false,
+    "class_weight": true
+   },
+   "params": 98418,
+   "final_loss": 0.056,
+   "train": {
+    "accuracy": 0.812,
+    "balanced": 0.623
+   },
+   "val": {
+    "accuracy": 0.754,
+    "balanced": 0.5
+   }
+  },
+  {
+   "id": "A6",
+   "name": "Lower learning rate, with augmentation",
+   "why": "The same, with flips, rotations and zooms so it can't simply memorise.",
+   "config": {
+    "bn": true,
+    "size": 128,
+    "widths": [
+     16,
+     32,
+     64,
+     128
+    ],
+    "lr": 0.0003,
+    "epochs": 150,
+    "augment": true,
+    "class_weight": true
+   },
+   "params": 98418,
+   "final_loss": 0.29,
+   "train": {
+    "accuracy": 0.835,
+    "balanced": 0.669
+   },
+   "val": {
+    "accuracy": 0.738,
+    "balanced": 0.489
+   }
+  },
+  {
+   "id": "A7",
+   "name": "64px input",
+   "why": "Even less detail: maybe coat colour and shape are enough.",
+   "config": {
+    "bn": true,
+    "size": 64,
+    "widths": [
+     16,
+     32,
+     64,
+     128
+    ],
+    "lr": 0.0003,
+    "epochs": 150,
+    "augment": true,
+    "class_weight": true
+   },
+   "params": 98418,
+   "final_loss": 0.222,
+   "train": {
+    "accuracy": 0.743,
+    "balanced": 0.829
+   },
+   "val": {
+    "accuracy": 0.426,
+    "balanced": 0.485
+   }
+  }
+ ],
+ "transfer": [
+  {
+   "id": "B1",
+   "name": "Default head",
+   "why": "Dropout 0.2, Adam with learning rate 0.001, 80 epochs, class weights.",
+   "config": {
+    "lr": 0.001,
+    "epochs": 80,
+    "dropout": 0.2,
+    "class_weight": true
+   },
+   "params": 2562,
+   "final_loss": 0.039,
+   "train": {
+    "accuracy": 1.0,
+    "balanced": 1.0
+   },
+   "val": {
+    "accuracy": 0.869,
+    "balanced": 0.846
+   }
+  },
+  {
+   "id": "B2",
+   "name": "No dropout",
+   "why": "Does the head need regularising at all?",
+   "config": {
+    "lr": 0.001,
+    "epochs": 80,
+    "dropout": 0.0,
+    "class_weight": true
+   },
+   "params": 2562,
+   "final_loss": 0.018,
+   "train": {
+    "accuracy": 1.0,
+    "balanced": 1.0
+   },
+   "val": {
+    "accuracy": 0.82,
+    "balanced": 0.791
+   }
+  },
+  {
+   "id": "B3",
+   "name": "More dropout",
+   "why": "Stronger regularisation.",
+   "config": {
+    "lr": 0.001,
+    "epochs": 80,
+    "dropout": 0.5,
+    "class_weight": true
+   },
+   "params": 2562,
+   "final_loss": 0.119,
+   "train": {
+    "accuracy": 0.996,
+    "balanced": 0.997
+   },
+   "val": {
+    "accuracy": 0.836,
+    "balanced": 0.824
+   }
+  },
+  {
+   "id": "B4",
+   "name": "10\u00d7 learning rate",
+   "why": "Faster training: does it still settle?",
+   "config": {
+    "lr": 0.01,
+    "epochs": 80,
+    "dropout": 0.2,
+    "class_weight": true
+   },
+   "params": 2562,
+   "final_loss": 0.086,
+   "train": {
+    "accuracy": 0.992,
+    "balanced": 0.985
+   },
+   "val": {
+    "accuracy": 0.754,
+    "balanced": 0.59
+   }
+  },
+  {
+   "id": "B5",
+   "name": "No class weights",
+   "why": "Without weighing up the rarer malamutes.",
+   "config": {
+    "lr": 0.001,
+    "epochs": 80,
+    "dropout": 0.2,
+    "class_weight": false
+   },
+   "params": 2562,
+   "final_loss": 0.032,
+   "train": {
+    "accuracy": 1.0,
+    "balanced": 1.0
+   },
+   "val": {
+    "accuracy": 0.836,
+    "balanced": 0.757
+   }
+  }
+ ],
+ "chosen": {
+  "scratch": "A2",
+  "transfer": "B1"
+ }
+}

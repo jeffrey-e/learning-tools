@@ -1,0 +1,8 @@
+# Only for tools/export_tfjs.py (converting the trained models to TensorFlow.js), in its own environment:
+#   python3 -m venv .venv-export && .venv-export/bin/pip install -r requirements-export.txt
+#   .venv-export/bin/python tools/export_tfjs.py
+# The converter needs TensorFlow 2.15 with tf_keras. Tested with these versions (October 2026, Python 3.11).
+tensorflowjs==4.9.0
+tensorflow==2.15.1
+tf_keras==2.15.1
+pillow

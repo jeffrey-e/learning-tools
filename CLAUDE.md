@@ -13,6 +13,7 @@ ml-ai/index.html               section page: one card per walkthrough
 ml-ai/tiny-cnn-walkthrough/    a self-contained project (page, tests, Python, its own package.json)
 ml-ai/tiny-llm-walkthrough/    a self-contained project
 ml-ai/log-autoencoder-walkthrough/  a self-contained project (Keras autoencoder on SSH logs)
+ml-ai/image-recognition-walkthrough/  a self-contained project (husky or malamute: CNN vs transfer learning, TF.js)
 .github/workflows/verify.yml   runs `npm test` in every project folder (matrix)
 ```
 

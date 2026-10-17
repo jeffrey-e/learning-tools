@@ -20,6 +20,7 @@ jobs:
           - ml-ai/tiny-cnn-walkthrough
           - ml-ai/tiny-llm-walkthrough
           - ml-ai/log-autoencoder-walkthrough
+          - ml-ai/image-recognition-walkthrough
     name: verify (${{ matrix.project }})
     defaults:
       run:
@@ -37,5 +38,8 @@ jobs:
           cache: pip
           cache-dependency-path: ${{ matrix.project }}/requirements.txt
       - run: npm ci
+      # Projects whose smoke test runs in a real browser (Playwright) need Chromium
+      - if: hashFiles(format('{0}/node_modules/playwright/package.json', matrix.project)) != ''
+        run: npx playwright install --with-deps chromium
       - run: pip install -r requirements.txt
       - run: npm test

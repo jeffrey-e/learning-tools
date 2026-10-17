@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label review</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+/* A local tool for checking labels before training; not part of the published page */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.card{border:3px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel);display:flex;flex-direction:column}
+.card img{width:100%;aspect-ratio:1;object-fit:cover;cursor:zoom-in;display:block}
+.card .b{display:flex;gap:4px;padding:6px}
+.card .b button{flex:1;padding:4px 0;font-size:13px}
+.card .m{font-size:11px;color:var(--faint);padding:0 6px 6px;overflow-wrap:anywhere}
+.card.husky{border-color:var(--accent)} .card.malamute{border-color:var(--p-choice-fg)} .card.drop{opacity:.35}
+.card.changed .m::before{content:"changed · ";color:var(--danger)}
+dialog{max-width:min(900px,95vw);border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--fg);padding:12px}
+dialog img{max-width:100%;max-height:75vh;display:block;margin:0 auto 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <h1>Label review</h1>
+    <p>Every candidate photo from Wikimedia Commons, with its proposed label. Set each one to <b>Husky</b>, <b>Malamute</b> or <b>Drop</b> (not a clear photo of one purebred adult or puppy of that breed: drawings, mixed breeds, several breeds, the dog too small to see). Click a photo to see it larger, with its Commons page. Keyboard: hover a card and press h, m or d. Save writes <code>data/labels.json</code>.</p>
+  </div>
+  <div class="toolbar" role="toolbar">
+    <span class="lab">Show</span>
+    <select id="filter">
+      <option value="all">All</option><option value="husky">Husky</option><option value="malamute">Malamute</option><option value="drop">Dropped</option><option value="changed">Changed by me</option>
+    </select>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="save">Save</button>
+    <span class="toast" id="status" aria-live="polite"></span>
+  </div>
+  <p class="note" id="counts"></p>
+  <div class="grid" id="grid"></div>
+</div>
+<dialog id="dlg"><img id="dlg-img" alt=""><p class="note" id="dlg-meta"></p><button id="dlg-close">Close</button></dialog>
+<script>
+(async () => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const cands = await (await fetch('../data/candidates.json')).json();
+  const saved = await (await fetch('/labels.json')).json();
+  // labels: the saved file wins; otherwise the first-pass label; otherwise the breed it was found under
+  const initial = Object.fromEntries(cands.map(c => [c.id, saved[c.id] ? saved[c.id].label : (c.guess === 'both' ? 'drop' : c.guess)]));
+  const labels = { ...initial };
+  const notes = Object.fromEntries(Object.entries(saved).map(([k, v]) => [k, v.note || '']));
+  const mine = new Set(Object.entries(saved).filter(([, v]) => v.by === 'user').map(([k]) => k));
+  let dirty = false;
+
+  function counts() {
+    const n = { husky: 0, malamute: 0, drop: 0 };
+    for (const v of Object.values(labels)) n[v]++;
+    $('counts').textContent = `${cands.length} photos: ${n.husky} husky, ${n.malamute} malamute, ${n.drop} dropped. ${mine.size} set by you.` + (dirty ? ' Unsaved changes.' : '');
+  }
+  function set(id, label) {
+    labels[id] = label; mine.add(id); dirty = true;
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    card.className = 'card ' + label + ' changed';
+    card.querySelectorAll('.b button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === label)));
+    counts();
+  }
+  function render() {
+    const f = $('filter').value;
+    const only = new URLSearchParams(location.search).get('ids');   // ?ids=c0077,c0098: just these photos
+    const ids = only ? new Set(only.split(',')) : null;
+    $('grid').replaceChildren(...cands.filter(c => (!ids || ids.has(c.id)) && (f === 'all' || (f === 'changed' ? mine.has(c.id) : labels[c.id] === f))).map(c => {
+      const card = document.createElement('div');
+      card.className = 'card ' + labels[c.id] + (mine.has(c.id) ? ' changed' : '');
+      card.dataset.id = c.id;
+      card.tabIndex = 0;
+      const img = document.createElement('img');
+      img.src = `../data/candidates/${c.id}.jpg`; img.loading = 'lazy'; img.alt = c.title;
+      img.onclick = () => { $('dlg-img').src = img.src; $('dlg-meta').innerHTML = ''; const a = document.createElement('a'); a.href = c.page; a.target = '_blank'; a.textContent = c.title; $('dlg-meta').append(a, ` · found under ${c.sources.join(', ')} · ${c.licence}` + (notes[c.id] ? ` · first pass: ${notes[c.id]}` : '')); $('dlg').showModal(); };
+      const b = document.createElement('div'); b.className = 'b';
+      for (const [l, name] of [['husky', 'Husky'], ['malamute', 'Malamute'], ['drop', 'Drop']]) {
+        const btn = document.createElement('button'); btn.textContent = name; btn.dataset.l = l;
+        btn.setAttribute('aria-pressed', String(labels[c.id] === l)); btn.onclick = () => set(c.id, l); b.append(btn);
+      }
+      const m = document.createElement('div'); m.className = 'm'; m.textContent = `${c.id} · ${c.guess === 'both' ? 'found under both breeds' : 'found as ' + c.guess}` + (notes[c.id] ? ` · ${notes[c.id]}` : '');
+      card.addEventListener('keydown', e => { const l = { h: 'husky', m: 'malamute', d: 'drop' }[e.key]; if (l) set(c.id, l); });
+      card.addEventListener('mouseenter', () => card.focus({ preventScroll: true }));
+      card.append(img, b, m);
+      return card;
+    }));
+    counts();
+  }
+  $('filter').onchange = render;
+  $('dlg-close').onclick = () => $('dlg').close();
+  $('save').onclick = async () => {
+    const out = {};
+    for (const c of cands) out[c.id] = { label: labels[c.id], by: mine.has(c.id) ? 'user' : (saved[c.id]?.by || 'first-pass'), ...(notes[c.id] ? { note: notes[c.id] } : {}) };
+    const r = await fetch('/labels.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(out) });
+    $('status').textContent = r.ok ? `Saved ${Object.keys(out).length} labels` : 'Save failed: ' + (await r.text());
+    if (r.ok) { dirty = false; counts(); }
+  };
+  addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
+  render();
+})();
+</script>
+</body>
+</html>

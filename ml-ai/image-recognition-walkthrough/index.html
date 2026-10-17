@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Image Recognition Walkthrough</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/site.css">
+<style>
+/* Page-specific components; everything else comes from the shared site.css */
+.pick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.pick img{width:36px;height:36px;border-radius:6px;border:1px solid var(--line)}
+.pick b{color:var(--fg);font-weight:600}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px}
+.ph{padding:0;border:3px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel);position:relative;cursor:pointer;aspect-ratio:1}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph[aria-pressed="true"]{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:1px}
+.ph.ok{border-color:var(--pos-fg)} .ph.bad{border-color:var(--neg-fg)}
+.ph .lb{position:absolute;left:0;right:0;bottom:0;font-size:10px;line-height:1.4;background:color-mix(in srgb,var(--panel) 85%,transparent);color:var(--fg);text-align:center}
+.big{width:224px;height:224px;border-radius:8px;border:1px solid var(--line);display:block;image-rendering:auto}
+.big.px{image-rendering:pixelated}
+.cv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.cv{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);align-items:flex-start}
+.cv canvas{border-radius:6px;border:1px solid var(--line);background:var(--zero)}
+.maps{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.maps .cv canvas{width:100%;height:auto;aspect-ratio:1;image-rendering:pixelated}
+.filters{display:grid;grid-template-columns:repeat(auto-fill,minmax(28px,1fr));gap:4px;max-width:420px}
+.filters canvas{width:100%;aspect-ratio:1;image-rendering:pixelated;border-radius:4px;border:1px solid var(--line)}
+.patch td{min-width:52px;height:auto;padding:4px 2px;font-size:11px;line-height:1.3;color:var(--paper)}
+.patch td span{display:block}
+.cm td{min-width:72px;height:44px;font-size:15px;font-weight:600}
+.cm td.ok{background:var(--pos);color:var(--pos-fg)} .cm td.bad{background:var(--neg);color:var(--neg-fg)}
+.cm td.name{min-width:90px}
+.exp td{height:auto;padding:6px 8px;text-align:left;font-family:var(--f-body);font-size:13px;color:var(--muted);vertical-align:top;min-width:0}
+.exp td.num{text-align:right;font-family:var(--f-mono);color:var(--fg);white-space:nowrap}
+.exp tr.chosen td{background:var(--accent-soft)}
+.exp tr.chosen td:first-child{color:var(--accent);font-weight:600}
+.exp th{text-align:left;padding:0 8px;white-space:nowrap}
+.exp td b{color:var(--fg);font-weight:600}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{font:inherit;font-size:14px;max-width:100%}
+.status{font-size:14px;font-family:var(--f-mono);color:var(--accent);background:var(--accent-soft);border-radius:8px;padding:6px 10px;align-self:flex-start;max-width:100%}
+.status.warn{color:var(--danger);background:var(--neg)}
+.chart{max-width:680px}
+.chart .val{stroke:var(--p-choice-fg);fill:none;stroke-width:2;stroke-dasharray:6 4}
+.chart .lab{fill:var(--muted);font-family:var(--f-body);font-size:12px}
+.chart .cross{stroke:var(--faint);stroke-width:1}
+.lg.val{border-top-color:var(--p-choice-fg);border-top-style:dashed}
+.lg.trn{border-top-color:var(--accent)}
+.credits{font-size:13px;color:var(--muted);max-height:420px;overflow:auto;margin:0;padding-left:18px}
+.credits li{margin-bottom:4px;overflow-wrap:anywhere}
+#pred-a .metric .v,#pred-b .metric .v{font-size:18px;overflow-wrap:anywhere}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">Learning tools</a> / <a href="../">Machine learning and AI</a> / Image recognition walkthrough</nav>
+  <div class="intro">
+    <h1>Image Recognition Walkthrough</h1>
+    <p>Can a computer tell a Siberian Husky from an Alaskan Malamute? People mix them up all the time. This page follows real photos through two models: one learned from scratch on our <span data-n="train">261</span> training photos, and one that reuses a network pretrained on 1.2 million images. You'll see a photo as numbers, the filters that find edges and colours, the deeper layers, how each model was trained and tuned, what it looks at when it decides, and where it goes wrong. Both models run in your browser. Each stage has the matching Keras code, with the output it prints; open it with Show code.</p>
+  </div>
+
+  <div class="toolbar" role="toolbar" aria-label="Controls">
+    <span class="pick" id="pick"></span>
+    <button id="prev" aria-label="Previous test photo">←</button>
+    <button id="next" aria-label="Next test photo">→</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="code-all">Show all code</button>
+    <button id="copy">Copy full script</button>
+    <span class="toast" id="toast" aria-live="polite"></span>
+  </div>
+  <textarea id="copy-fallback" hidden readonly style="width:100%;height:200px;font-family:var(--f-mono);font-size:12px" aria-label="Full Python script"></textarea>
+  <p class="status" id="engine" aria-live="polite">Loading TensorFlow.js and the two models…</p>
+
+  <section aria-labelledby="s0">
+    <h2 id="s0"><span class="no">0</span>Where the values come from</h2>
+    <p class="note">Every number below has one of four origins. Each stage is tagged with the same labels.</p>
+    <div class="sources">
+      <div class="src"><span class="tag t-data">Input data</span><span>The photos and their labels.</span><span class="ex" id="src-data"></span></div>
+      <div class="src"><span class="tag t-choice">Design choice</span><span>Decided by people: which photos count, the split, the layers, every training setting.</span><span class="ex">Here: chosen in experiments on the validation photos (step 6).</span></div>
+      <div class="src"><span class="tag t-learn">Learned</span><span>Filter weights, learned by gradient descent.</span><span class="ex" id="src-learn"></span></div>
+      <div class="src"><span class="tag t-calc">Computed</span><span>Produced while one photo passes through a model, then thrown away.</span><span class="ex">Here: feature maps, features, probabilities and the heatmaps.</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s1">
+    <h2 id="s1"><span class="no">1</span>The photos <span class="tag t-data">Input data</span> <span class="tag t-choice">Design choice</span></h2>
+    <div class="vis">
+      <p class="note">All photos come from <a href="https://commons.wikimedia.org/">Wikimedia Commons</a>, under free licences (CC0, public domain, CC BY, CC BY-SA). The labels needed three steps. 793 candidates were found in the breed categories and by searching. A pretrained model dropped the ones without any dog (parachutes, helicopters: there's a military exercise called "Operation Malamute"). Then two rounds of people looking: first a pass that dropped drawings, other breeds, sled teams of mixed "Alaskan huskies" and dogs too small to see, then a final review of every label. <span data-n="total">404</span> photos remain. Getting the data right was most of the work, and that's normal.</p>
+      <div class="scroll"><table class="cm" id="t-counts"></table></div>
+      <p class="note">Two choices matter for honest results. <b>Photo sessions stay together:</b> one author often uploaded many shots of the same dog on the same day; if one were in training and another in the test, the test would only check whether the model recognises that dog again. So all photos of one author and day go to the same split. <b>The test photos are used once,</b> at the very end; settings are chosen on the validation photos.</p>
+      <p class="note">There are three huskies for every malamute. A model that always says "husky" is right 73% of the time on the test photos, so plain accuracy flatters: watch both breeds separately.</p>
+      <h3 class="sub-h">Test photos</h3>
+      <p class="note">Pick one to follow through the page, or use the arrows in the toolbar.</p>
+      <div class="gallery" id="g-test" aria-label="Test photos"></div>
+      <details><summary class="cap">Credits: the photos (all <span data-n="total">404</span>, resized and padded to 224×224) and the pretrained model</summary><p class="note">Model B builds on MobileNetV2 (Sandler et al., Google), ImageNet weights from Keras Applications, Apache License 2.0; served here converted to TensorFlow.js in <code>model/transfer/</code>. TensorFlow.js by Google, Apache License 2.0.</p><ol class="credits" id="credits"></ol></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s2">
+    <h2 id="s2"><span class="no">2</span>A photo is a grid of numbers <span class="tag t-data">Input data</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">A colour photo is three grids of numbers, red, green and blue, each from 0 (none) to 255 (full). Ours are 224×224 pixels: 150,528 numbers. Every photo was padded to a square with grey and resized, so nothing is cut off. Below: the selected photo, its centre enlarged, and the actual numbers of the 6×6 pixels in the middle.</p>
+        <div class="cv-row">
+          <div class="cv"><canvas id="c-photo" class="big" width="224" height="224"></canvas><span>224 × 224 pixels</span></div>
+          <div class="cv"><canvas id="c-zoom" class="big px" width="224" height="224"></canvas><span>the centre, 8× larger</span></div>
+        </div>
+        <div class="scroll"><table class="mt patch" id="t-patch" aria-label="Red, green and blue values of the centre pixels"></table></div>
+        <div class="cv-row" id="channels"></div>
+      </div>
+      <details class="py" data-cell="load"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s3">
+    <h2 id="s3"><span class="no">3</span>Filters find edges and colours <span class="tag t-learn">Learned</span> <span class="tag t-calc">Computed</span></h2>
+    <div class="vis">
+      <p class="note">A convolution slides a small filter over the photo: here 3×3 pixels × 3 colours. Where the pixels match the filter's pattern, the result is high. (The <a href="../tiny-cnn-walkthrough/">Tiny CNN walkthrough</a> shows this sliding step by step.) These are the 32 filters of MobileNetV2's first layer, learned on ImageNet, shown as tiny 3×3 colour patches (grey is 0; lighter means that colour counts positively, darker negatively): most react to an edge in one direction, or to one colour against another. A few are almost all grey: training left them nearly unused.</p>
+      <div class="filters" id="filters" aria-label="The 32 first-layer filters"></div>
+      <p class="note">Each filter produces a feature map: a 112×112 grid (the first layer also halves the size) that is bright where the photo matches. Here are the eight maps that react most to the selected photo: outlines, the dark mask, light fur.</p>
+      <div class="maps" id="maps1"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s4">
+    <h2 id="s4"><span class="no">4</span>Deeper layers see parts, not pixels <span class="tag t-learn">Learned</span> <span class="tag t-calc">Computed</span></h2>
+    <div class="vis">
+      <p class="note">Layers are stacked: each one combines the previous layer's maps. With every step the maps get smaller and each position sees a larger part of the photo. Early layers find edges, middle layers textures and shapes (fur, an eye, an ear tip), the last layers whole parts. MobileNetV2 has 53 layers with filters; below, the most active maps of a middle layer (28×28) and of the last one (7×7: each cell sees a large part of the photo).</p>
+      <h3 class="sub-h">A middle layer (block 6, 28×28)</h3>
+      <div class="maps" id="maps2"></div>
+      <h3 class="sub-h">The last layer (7×7 × 1280 maps)</h3>
+      <div class="maps" id="maps3"></div>
+      <p class="note" id="gap-note">Finally, global average pooling turns each of the 1280 maps into one number, its average. These 1280 numbers are the photo's <b>features</b>: a description that says nothing about where things are, only what is there.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s5">
+    <h2 id="s5"><span class="no">5</span>Model A: learning from scratch <span class="tag t-learn">Learned</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note" id="a-desc"></p>
+        <div class="cv-row">
+          <div class="cv"><span>First layer, most active maps</span><div class="maps" id="mapsA1" style="min-width:260px"></div></div>
+        </div>
+        <svg class="chart" id="curve-a" viewBox="0 0 600 190" role="img" aria-label="Model A accuracy per epoch"></svg>
+        <div class="legend" id="legend-a"></div>
+        <div class="metrics" id="pred-a"></div>
+        <p class="note" id="a-verdict"></p>
+      </div>
+      <details class="py" data-cell="scratch train_a"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s6">
+    <h2 id="s6"><span class="no">6</span>How the models were tuned <span class="tag t-choice">Design choice</span></h2>
+    <div class="vis">
+      <p class="note">Settings like the learning rate, the number of filters, augmentation or dropout aren't learned: people choose them by trying. These are all the experiments behind this page, in the order they were run. Every run is judged on the <b>validation</b> photos only, by <b>balanced accuracy</b>: the average of the husky score and the malamute score, so that always answering "husky" scores 50%, not 75%. The test photos were not looked at until the choice was made. Every run is seeded, so <code>tools/experiments.py</code> gives the same numbers again.</p>
+      <h3 class="sub-h">Model A, from scratch</h3>
+      <div class="scroll"><table class="exp" id="exp-a"></table></div>
+      <p class="note" id="exp-a-note"></p>
+      <h3 class="sub-h">Model B, transfer learning (only the head is trained)</h3>
+      <div class="scroll"><table class="exp" id="exp-b"></table></div>
+      <p class="note" id="exp-b-note"></p>
+      <p class="note"><b>How fragile small data is:</b> while building this page, one photo was dropped after a label check. That changed the split, and with it model A's best run and its test result by about 17 points; model B moved by about one point. With a few hundred photos, model A's numbers are as much about which photos ended up where as about the model. Model B is stable because it brings what it learned from 1.2 million photos.</p>
+      <p class="note">What to take from this: first check that a model can learn at all (can it memorise its training photos?), then fight overfitting (augmentation, dropout, fewer parameters). Change one thing at a time, keep a log, and never choose on the test set: a setting picked on the test photos makes the test result look better than the model is.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s7">
+    <h2 id="s7"><span class="no">7</span>Model B: transfer learning <span class="tag t-learn">Learned</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note" id="b-desc"></p>
+        <svg class="chart" id="curve-b" viewBox="0 0 600 190" role="img" aria-label="Model B accuracy per epoch"></svg>
+        <div class="legend" id="legend-b"></div>
+        <div class="metrics" id="pred-b"></div>
+        <p class="note">The original MobileNetV2, with its own last layer, already knows 1000 ImageNet classes, including "Siberian husky", "malamute" and "Eskimo dog". Its top three for the selected photo:</p>
+        <div class="bars" id="imagenet"></div>
+        <p class="note">So the pretrained features already separate the breeds fairly well: our head mostly learns to read them for our two labels. Without those 1.2 million ImageNet photos, model A has only our <span data-n="train">261</span>.</p>
+        <p class="note">About the pretrained model: MobileNetV2 (<a href="https://arxiv.org/abs/1801.04381">Sandler et al., Google, 2018</a>), with the ImageNet weights from <a href="https://keras.io/api/applications/mobilenet/">Keras Applications</a> (Apache License 2.0). Its weights are numbers only, not code; the tools check the downloaded files against pinned SHA-256 hashes before using them. This page serves them, converted to TensorFlow.js and stored in 16-bit, from <code>model/transfer/</code>. ImageNet's own photos are licensed for research use only; models trained on them, like this one, are widely published, but that is worth knowing before using it commercially.</p>
+      </div>
+      <details class="py" data-cell="transfer imagenet train_b"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s8">
+    <h2 id="s8"><span class="no">8</span>What the model looks at <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Both models end with average pooling and one dense layer, so their decision can be traced back to places in the photo. Each last feature map is multiplied by the dense layer's weight for the predicted breed and the maps are added up: a class activation map (CAM). Coloured areas pushed the model towards its answer, the brightest most. A good model looks at the dog's face, ears and coat; a model that looks at the snow or the grass has learned a shortcut.</p>
+        <div class="two">
+          <div class="cv"><canvas id="cam-b" class="big" width="224" height="224"></canvas><span id="cam-b-cap"></span></div>
+          <div class="cv"><canvas id="cam-a" class="big" width="224" height="224"></canvas><span id="cam-a-cap"></span></div>
+        </div>
+      </div>
+      <details class="py" data-cell="cam"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s9">
+    <h2 id="s9"><span class="no">9</span>Results and mistakes <span class="tag t-calc">Computed</span></h2>
+    <div class="split">
+      <div class="vis">
+        <p class="note">Both models on the test photos, which played no part in training or in choosing settings. Rows: the true breed; columns: what the model said.</p>
+        <div class="two" id="cms"></div>
+        <h3 class="sub-h">The test photos, right and wrong</h3>
+        <div class="row" id="g-filter" role="group" aria-label="Show">
+          <button data-f="b" aria-pressed="true">Model B's mistakes</button>
+          <button data-f="a">Model A's mistakes</button>
+          <button data-f="all">All test photos</button>
+        </div>
+        <p class="note" id="g-note"></p>
+        <div class="gallery" id="g-mistakes"></div>
+        <p class="note">Not every "mistake" is the model's fault. People confuse these breeds too, and a label can be wrong: when a confident model disagrees with a label, it's worth looking at the photo (and its Commons page) again. Click a photo to inspect it.</p>
+      </div>
+      <details class="py" data-cell="evaluate"></details>
+    </div>
+  </section>
+
+  <section aria-labelledby="s10">
+    <h2 id="s10"><span class="no">10</span>Try your own photo <span class="tag t-data">Input data</span> <span class="tag t-calc">Computed</span></h2>
+    <div class="vis">
+      <p class="note">Use a photo of a husky or a malamute (or anything else, to see what happens: the models only know these two answers, so a cat still gets one). It's padded to a square and resized to 224×224 like the training photos, then both models run on it in your browser. Nothing is uploaded.</p>
+      <label class="drop" id="drop">Drop a photo here, or choose one<input type="file" id="file" accept="image/*"></label>
+      <p class="err" id="up-err" hidden></p>
+      <div class="two" id="up-out" hidden>
+        <div class="cv"><canvas id="up-cam-b" class="big" width="224" height="224"></canvas><span id="up-b"></span></div>
+        <div class="cv"><canvas id="up-cam-a" class="big" width="224" height="224"></canvas><span id="up-a"></span></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Pinned, with Subresource Integrity: the browser refuses the file if it isn't exactly TF.js 4.22.0 -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js" integrity="sha384-vE8hbVJ4lezako5rlvE7bY0BVzWlFhZncPlckrqNwcUQpVtgbENTgZ8TBbnPjZre" crossorigin="anonymous"></script>
+<script src="data.js"></script>
+<script src="page.js"></script>
+<script>
+(() => {
+  'use strict';
+  const P = globalThis.ImgPage, D = globalThis.IMG_DATA;
+  const CODE_KEY = 'imgrec-code-open';
+  const $ = id => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const test = D.photos.filter(p => p.split === 'test');
+  const pct = v => (v * 100).toFixed(0) + '%';
+  const breed = p => (p > 0.5 ? 'malamute' : 'husky');
+
+  // Default: a malamute model B gets right (the rarer breed is the more interesting one)
+  const state = { photo: test.find(p => p.label === 'malamute' && p.pb > 0.8) || test[0], filter: 'b' };
+  let models = null;   // { a, b, wa, wb } once TensorFlow.js has loaded them
+
+  function el(tag, attrs = {}, ...kids) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') node.className = v;
+      else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v);
+    }
+    node.append(...kids);
+    return node;
+  }
+  const svgEl = (tag, attrs = {}, text) => { const n = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); if (text !== undefined) n.textContent = text; return n; };
+  // Colours come from the CSS tokens, read at draw time (so light and dark both work)
+  const token = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  function rgb(hex) { const h = hex.replace('#', ''); const n = parseInt(h.length === 3 ? h.replace(/./g, c => c + c) : h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+
+  // ---- Code panels (same component and behaviour as the other walkthroughs) ----
+  let codeOpen = false;
+  try { codeOpen = localStorage.getItem(CODE_KEY) === '1'; } catch (e) { /* storage unavailable: default closed */ }
+  let cells = [];
+  function renderCode() {
+    cells = P.pythonCells(state.photo, D);
+    document.querySelectorAll('details.py').forEach(d => {
+      const cs = d.dataset.cell.split(' ').map(id => cells.find(x => x.id === id)).filter(Boolean);
+      const wasOpen = d.open;
+      const kids = [el('summary', { class: 'py-head' }, el('span', { class: 'oc' }), el('span', { class: 'lang' }, 'Keras'))];
+      for (const c of cs) {
+        if (c.train) kids.push(el('p', { class: 'py-note' }, 'Training: the output is from the run that produced these weights. It takes a few minutes; the numbers can differ slightly between machines.'));
+        kids.push(el('div', { class: 'pycell', 'data-id': c.id }, el('pre', { class: 'code' }, c.code), el('pre', { class: 'out' }, c.out)));
+      }
+      d.replaceChildren(...kids);
+      d.open = wasOpen;
+    });
+  }
+  function setAllCode(open) {
+    codeOpen = open;
+    document.querySelectorAll('details.py').forEach(d => { d.open = open; });
+    $('code-all').textContent = open ? 'Hide all code' : 'Show all code';
+    try { localStorage.setItem(CODE_KEY, open ? '1' : '0'); } catch (e) { /* not remembered */ }
+  }
+
+  // ---- Drawing helpers ----
+  const imgCache = new Map();
+  function loadImage(src) {
+    if (!imgCache.has(src)) imgCache.set(src, new Promise((ok, bad) => { const im = new Image(); im.onload = () => ok(im); im.onerror = bad; im.src = src; }));
+    return imgCache.get(src);
+  }
+  // A single-channel map [h][w] (or flat Float32Array with h, w) drawn in the accent colour: dark = 0, accent = the map's maximum
+  function drawMap(canvas, data, h, w, max) {
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d'), img = ctx.createImageData(w, h);
+    const [r, g, b] = rgb(token('--accent')), [r0, g0, b0] = rgb(token('--zero'));
+    for (let i = 0; i < h * w; i++) {
+      const t = Math.max(0, Math.min(1, data[i] / (max || 1)));
+      img.data[4 * i] = r0 + (r - r0) * t; img.data[4 * i + 1] = g0 + (g - g0) * t; img.data[4 * i + 2] = b0 + (b - b0) * t; img.data[4 * i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  // The photo, darkened, with the class activation map on top: scaled from its lowest to its highest value,
+  // so the brightest areas are the ones that pushed the model hardest towards its answer
+  function drawCam(canvas, source, camGrid) {
+    const ctx = canvas.getContext('2d');
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(source, 0, 0, 224, 224);
+    ctx.fillStyle = '#000'; ctx.globalAlpha = 0.55; ctx.fillRect(0, 0, 224, 224); ctx.globalAlpha = 1;
+    const h = camGrid.length, w = camGrid[0].length, flat = camGrid.flat();
+    const lo = Math.min(...flat), hi = Math.max(...flat);
+    const small = document.createElement('canvas'); small.width = w; small.height = h;
+    const sctx = small.getContext('2d'), img = sctx.createImageData(w, h), [r, g, b] = rgb(token('--danger'));
+    flat.forEach((v, i) => { const t = (v - lo) / (hi - lo || 1); img.data[4 * i] = r; img.data[4 * i + 1] = g; img.data[4 * i + 2] = b; img.data[4 * i + 3] = 220 * t * t; });
+    sctx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true; ctx.drawImage(small, 0, 0, 224, 224);
+  }
+
+  // ---- Running the models (TensorFlow.js) ----
+  async function loadModels() {
+    if (typeof tf === 'undefined') throw new Error('TensorFlow.js did not load');
+    // The model files keep their names when the models are retrained, so a cached weight file could belong to an
+    // older model.json. 'no-cache' makes the browser check each file with the server (a cheap "not modified" when
+    // it's current); if loading still fails, try once more bypassing the cache completely.
+    const load = cache => Promise.all(['scratch', 'transfer'].map(m => tf.loadLayersModel(`model/${m}/model.json`, { requestInit: { cache } })));
+    const [a, b] = await load('no-cache').catch(() => load('reload'));
+    const wa = await a.getLayer('classify').getWeights()[0].array();
+    const wb = await b.getLayer('classify').getWeights()[0].array();
+    const conv1 = await b.getLayer('Conv1').getWeights()[0].array();   // [3][3][3][32]
+    return { a, b, wa, wb, conv1 };
+  }
+  // Both models on one 224x224 image (an <img> or a <canvas>). Returns plain arrays.
+  async function analyse(source) {
+    const x = tf.tidy(() => tf.browser.fromPixels(source).toFloat().expandDims(0));
+    const outB = models.b.predict(x), outA = models.a.predict(x);
+    const [conv1, mid, feat, pb] = await Promise.all(outB.map(t => t.array()));
+    const [firstA, lastA, pa] = await Promise.all(outA.map(t => t.array()));
+    tf.dispose([x, ...outB, ...outA]);
+    const cb = pb[0][1] > 0.5 ? 1 : 0, ca = pa[0][1] > 0.5 ? 1 : 0;
+    return {
+      pb: pb[0][1], pa: pa[0][1], conv1: conv1[0], mid: mid[0], feat: feat[0], firstA: firstA[0],
+      camB: P.cam(feat[0], models.wb, cb), camA: P.cam(lastA[0], models.wa, ca),
+    };
+  }
+  // The k channels of a [h][w][c] array with the highest mean, each as a flat array
+  function topChannels(arr, k) {
+    const h = arr.length, w = arr[0].length, c = arr[0][0].length, mean = new Float64Array(c);
+    for (const row of arr) for (const cell of row) for (let j = 0; j < c; j++) mean[j] += cell[j];
+    const order = [...mean.keys()].sort((p, q) => mean[q] - mean[p]).slice(0, k);
+    return order.map(j => { const flat = new Float32Array(h * w); let m = 0; arr.forEach((row, y) => row.forEach((cell, x) => { flat[y * w + x] = cell[j]; m = Math.max(m, cell[j]); })); return { j, flat, h, w, max: m }; });
+  }
+  function mapGrid(container, arr, k, label) {
+    container.replaceChildren(...topChannels(arr, k).map(({ j, flat, h, w, max }) => {
+      const c = el('canvas', { role: 'img', 'aria-label': `${label} map ${j}` });
+      drawMap(c, flat, h, w, max);
+      return el('div', { class: 'cv' }, c, el('span', {}, `map ${j}`));
+    }));
+  }
+
+  // ---- Static parts ----
+  function renderStatic() {
+    const c = D.counts;
+    $('src-data').textContent = `Here: ${D.photos.length} photos from Wikimedia Commons, labelled husky or malamute by people.`;
+    $('src-learn').textContent = `Here: model A learns all ${D.params.scratch.toLocaleString('en')} of its weights from our photos; model B reuses ${D.params.base.toLocaleString('en')} weights learned on ImageNet and learns ${D.params.head.toLocaleString('en')} more.`;
+    $('t-counts').replaceChildren(
+      el('tr', {}, el('th'), ...['train', 'validation', 'test'].map(s => el('th', { scope: 'col' }, s))),
+      ...D.classes.map(k => el('tr', {}, el('td', { class: 'name' }, k), ...['train', 'val', 'test'].map(s => el('td', { class: 'zero' }, String(c[s][k]))))));
+    $('credits').replaceChildren(...D.photos.map(p => el('li', {},
+      el('a', { href: p.page, rel: 'noopener' }, p.title.replace(/^File:/, '')), ` (${p.label}) by ${p.author || 'unknown'}, `,
+      p.licence_url ? el('a', { href: p.licence_url, rel: 'noopener license' }, p.licence) : p.licence)));
+    $('g-test').replaceChildren(...test.map(p => el('button', { class: 'ph', 'data-id': p.id, 'aria-label': `Test photo ${p.id}, ${p.label}`, onclick: () => select(p) },
+      el('img', { src: p.file, alt: '', loading: 'lazy' }), el('span', { class: 'lb' }, p.label))));
+
+    const ca = D.config.scratch;
+    $('a-desc').textContent = `${ca.widths.length} convolution layers with ${ca.widths.join(', ')} filters of 3×3${ca.bn ? ', each followed by batch normalisation' : ''} and ReLU, with max pooling in between, then average pooling and one dense layer: ${D.params.scratch.toLocaleString('en')} weights, all learned from our ${c.train.husky + c.train.malamute} training photos${ca.size !== 224 ? ` (resized to ${ca.size}×${ca.size} first)` : ''}. ${ca.augment ? 'Every epoch, the training photos are randomly flipped, rotated and zoomed, so the model never sees exactly the same photo twice. ' : ''}Malamute photos count ${(c.train.husky / c.train.malamute).toFixed(1)}× in the loss, because there are fewer of them.`;
+    const mA = D.metrics.scratch.test, mB = D.metrics.transfer.test;
+    const always = c.test.husky / (c.test.husky + c.test.malamute), nTrain = c.train.husky + c.train.malamute;
+    document.querySelectorAll('[data-n="train"]').forEach(e => { e.textContent = String(nTrain); });
+    document.querySelectorAll('[data-n="total"]').forEach(e => { e.textContent = String(D.photos.length); });
+    $('a-verdict').textContent = `On the test photos model A gets ${pct(mA.accuracy)} right: fewer than a model that always says "husky" (${pct(always)}). Its balanced accuracy is ${pct(mA.balanced)}, around a coin flip: it hasn't learned to tell the breeds apart. That is the honest result of learning from a few hundred photos: there are far more ways to fit ${nTrain} photos than ways that work on new ones. Step 6 shows what was tried to change that.`;
+    $('b-desc').textContent = `MobileNetV2 was trained on ImageNet: 1.2 million photos in 1000 classes. Its layers are kept frozen, exactly as they are; only its last layer is replaced by our head: dropout and one dense layer from its 1280 features to husky or malamute. That's ${D.params.head.toLocaleString('en')} weights to learn instead of ${D.params.scratch.toLocaleString('en')}. On the test photos it reaches ${pct(mB.accuracy)} accuracy and ${pct(mB.balanced)} balanced accuracy.`;
+    renderCurve('a'); renderCurve('b');
+    renderExperiments();
+    renderConfusions();
+  }
+
+  // Accuracy per epoch: training solid, validation dashed, with an epoch readout on hover
+  function renderCurve(which) {
+    const svg = $('curve-' + which), h = D.history[which === 'a' ? 'scratch' : 'transfer'];
+    const x0 = 44, x1 = 590, y0 = 10, y1 = 160, n = h.accuracy.length;
+    const X = i => x0 + (x1 - x0) * i / (n - 1), Y = v => y1 - (y1 - y0) * v;
+    const pts = a => a.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    svg.replaceChildren();
+    for (const t of [0.5, 0.75, 1]) svg.append(svgEl('line', { class: 'ax', x1: x0, x2: x1, y1: Y(t), y2: Y(t), 'stroke-dasharray': '2 4' }), svgEl('text', { x: x0 - 6, y: Y(t) + 4, 'text-anchor': 'end' }, pct(t)));
+    svg.append(svgEl('line', { class: 'ax', x1: x0, x2: x1, y1: y1, y2: y1 }), svgEl('text', { x: x0 - 6, y: y1 + 4, 'text-anchor': 'end' }, '0%'),
+      svgEl('text', { x: x0, y: y1 + 18 }, 'epoch 1'), svgEl('text', { x: x1, y: y1 + 18, 'text-anchor': 'end' }, `epoch ${n}`),
+      svgEl('text', { x: (x0 + x1) / 2, y: y1 + 18, 'text-anchor': 'middle' }, 'accuracy'),
+      svgEl('polyline', { class: 'ln', points: pts(h.accuracy) }), svgEl('polyline', { class: 'val', points: pts(h.val_accuracy) }));
+    const cross = svgEl('line', { class: 'cross', y1: y0, y2: y1, visibility: 'hidden' });
+    svg.append(cross);
+    const legend = () => [el('span', {}, el('i', { class: 'lg trn' }), `training ${pct(h.accuracy[n - 1])}`), el('span', {}, el('i', { class: 'lg val' }), `validation ${pct(h.val_accuracy[n - 1])}`)];
+    $('legend-' + which).replaceChildren(...legend());
+    svg.addEventListener('pointermove', e => {
+      const box = svg.getBoundingClientRect(); if (!box.width) return;
+      const i = Math.round(((e.clientX - box.left) / box.width * 600 - x0) / (x1 - x0) * (n - 1));
+      if (i < 0 || i >= n) return;
+      cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i)); cross.setAttribute('visibility', 'visible');
+      $('legend-' + which).replaceChildren(...legend(), el('span', {}, `epoch ${i + 1}: training ${pct(h.accuracy[i])}, validation ${pct(h.val_accuracy[i])}`));
+    });
+    svg.addEventListener('pointerleave', () => { cross.setAttribute('visibility', 'hidden'); $('legend-' + which).replaceChildren(...legend()); });
+  }
+
+  function renderExperiments() {
+    const settings = (r, base) => Object.entries(r.config).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(base[k])).map(([k, v]) => `${k} ${Array.isArray(v) ? v.join('-') : v}`).join(', ') || 'the starting point';
+    for (const [key, id, chosen] of [['scratch', 'exp-a', D.chosen.scratch], ['transfer', 'exp-b', D.chosen.transfer]]) {
+      const rows = D.experiments[key], base = rows[0].config;
+      $(id).replaceChildren(
+        el('tr', {}, ...['run', 'what changed (vs. the first run)', 'why', 'train acc.', 'val. acc.', 'val. balanced'].map(h => el('th', { scope: 'col' }, h))),
+        ...rows.map(r => el('tr', { class: r.id === chosen ? 'chosen' : '' },
+          el('td', {}, r.id), el('td', {}, el('b', {}, r.name), el('br'), settings(r, base)), el('td', {}, r.why),
+          el('td', { class: 'num' }, pct(r.train.accuracy)), el('td', { class: 'num' }, pct(r.val.accuracy)), el('td', { class: 'num' }, pct(r.val.balanced)))));
+    }
+    const ra = D.experiments.scratch.find(r => r.id === D.chosen.scratch), rb = D.experiments.transfer.find(r => r.id === D.chosen.transfer);
+    const best = rows => Math.max(...rows.map(r => r.val.balanced)), worst = rows => Math.min(...rows.map(r => r.val.balanced));
+    const A = D.experiments.scratch.filter(r => r.id !== 'A5'), B = D.experiments.transfer;
+    $('exp-a-note').textContent = `Chosen: ${ra.id} (highlighted), the best balanced validation accuracy (${pct(ra.val.balanced)}). Across the candidates, balanced validation accuracy runs from ${pct(worst(A))} to ${pct(best(A))}, and training accuracy is higher for most of them: part of what the models learn about their own photos doesn't carry over to new ones. With ${D.counts.val.malamute} malamutes among the validation photos, one photo moves the malamute score by ${pct(1 / D.counts.val.malamute)}: small differences between runs are mostly luck.`;
+    const weakest = B.reduce((w, r) => (r.val.balanced < w.val.balanced ? r : w)), rest = B.filter(r => r !== weakest);
+    $('exp-b-note').textContent = `Chosen: ${rb.id}, with ${pct(rb.val.balanced)} balanced validation accuracy. Every run learns its training photos (nearly) completely. Most land between ${pct(worst(rest))} and ${pct(best(rest))} on validation, because the hard part, the features, was already learned on ImageNet; the weakest is ${weakest.id} (${weakest.name.toLowerCase()}, ${pct(weakest.val.balanced)}): even with good features, a bad setting can still hurt.`;
+  }
+
+  function renderConfusions() {
+    $('cms').replaceChildren(...[['scratch', 'Model A, from scratch'], ['transfer', 'Model B, transfer learning']].map(([k, name]) => {
+      const m = D.metrics[k].test;
+      return el('div', { class: 'vis' }, el('h3', { class: 'sub-h' }, name),
+        el('div', { class: 'scroll' }, el('table', { class: 'cm' },
+          el('tr', {}, el('th'), el('th', { scope: 'col' }, 'said husky'), el('th', { scope: 'col' }, 'said malamute')),
+          ...D.classes.map((t, i) => el('tr', {}, el('td', { class: 'name' }, t), ...m.confusion[i].map((v, j) => el('td', { class: i === j ? 'ok' : 'bad' }, String(v))))))),
+        el('p', { class: 'note' }, `Accuracy ${pct(m.accuracy)}; balanced ${pct(m.balanced)}. Malamutes found: ${m.confusion[1][1]} of ${m.confusion[1][0] + m.confusion[1][1]}.`));
+    }));
+    renderMistakes();
+  }
+  function renderMistakes() {
+    const f = state.filter, key = f === 'a' ? 'pa' : 'pb';
+    const rows = f === 'all' ? test : test.filter(p => breed(p[key]) !== p.label);
+    document.querySelectorAll('#g-filter button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
+    $('g-note').textContent = f === 'all' ? `All ${test.length} test photos; the border shows whether model B got it right.`
+      : `${rows.length} of ${test.length} test photos wrong. The label shows the true breed and the model's confidence in its (wrong) answer.`;
+    $('g-mistakes').replaceChildren(...rows.map(p => {
+      const said = breed(p[f === 'all' ? 'pb' : key]), conf = said === 'malamute' ? p[f === 'all' ? 'pb' : key] : 1 - p[f === 'all' ? 'pb' : key];
+      return el('button', { class: 'ph ' + (said === p.label ? 'ok' : 'bad'), 'data-id': p.id, 'aria-label': `${p.label}, model said ${said} (${pct(conf)})`, onclick: () => { select(p); $('s2').scrollIntoView?.({ behavior: 'smooth' }); } },
+        el('img', { src: p.file, alt: '', loading: 'lazy' }), el('span', { class: 'lb' }, f === 'all' ? p.label : `${p.label}: ${pct(conf)} ${said}`));
+    }));
+  }
+
+  // ---- Everything that depends on the selected photo ----
+  async function render() {
+    const p = state.photo;
+    $('pick').replaceChildren(el('img', { src: p.file, alt: '' }), el('span', {}, 'Photo ', el('b', {}, p.id), ` · ${p.label}`));
+    document.querySelectorAll('#g-test .ph').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.id === p.id)));
+    renderCode();
+    const img = await loadImage(p.file);
+    if (state.photo !== p) return;   // another photo was picked meanwhile
+
+    // 2. Pixels
+    $('c-photo').getContext('2d').drawImage(img, 0, 0);
+    const z = $('c-zoom').getContext('2d'); z.imageSmoothingEnabled = false; z.drawImage(img, 98, 98, 28, 28, 0, 0, 224, 224);
+    const px = $('c-photo').getContext('2d').getImageData(109, 109, 6, 6).data;
+    $('t-patch').replaceChildren(...[0, 1, 2, 3, 4, 5].map(y => el('tr', {}, ...[0, 1, 2, 3, 4, 5].map(x => {
+      const i = 4 * (y * 6 + x), [r, g, b] = [px[i], px[i + 1], px[i + 2]];
+      return el('td', { style: `background:rgb(${r},${g},${b});color:${(r * 299 + g * 587 + b * 114) / 1000 > 140 ? '#111' : '#fff'}` }, el('span', {}, `R ${r}`), el('span', {}, `G ${g}`), el('span', {}, `B ${b}`));
+    }))));
+    const all = $('c-photo').getContext('2d').getImageData(0, 0, 224, 224).data;
+    $('channels').replaceChildren(...['red', 'green', 'blue'].map((name, k) => {
+      const c = el('canvas', { width: 112, height: 112, role: 'img', 'aria-label': `The ${name} channel` }), ctx = c.getContext('2d'), out = ctx.createImageData(112, 112);
+      for (let y = 0; y < 112; y++) for (let x = 0; x < 112; x++) { const v = all[4 * ((2 * y) * 224 + 2 * x) + k], o = 4 * (y * 112 + x); out.data[o] = k === 0 ? v : 0; out.data[o + 1] = k === 1 ? v : 0; out.data[o + 2] = k === 2 ? v : 0; out.data[o + 3] = 255; }
+      ctx.putImageData(out, 0, 0);
+      return el('div', { class: 'cv' }, c, el('span', {}, name));
+    }));
+
+    if (!models) return;
+    const r = await analyse(img);
+    if (state.photo !== p) return;
+    mapGrid($('maps1'), r.conv1, 8, 'First layer');
+    mapGrid($('maps2'), r.mid, 8, 'Middle layer');
+    mapGrid($('maps3'), r.feat, 8, 'Last layer');
+    mapGrid($('mapsA1'), r.firstA, 6, 'Model A first layer');
+    const pred = (key, live, keras) => [
+      el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Says'), el('span', { class: 'v' }, breed(live)), el('span', { class: 's' }, `true: ${p.label}`)),
+      el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Malamute'), el('span', { class: 'v' }, pct(live)), el('span', { class: 's' }, `in your browser; Keras: ${pct(keras)}`)),
+      el('div', { class: 'metric' }, el('span', { class: 'k' }, 'Husky'), el('span', { class: 'v' }, pct(1 - live)), el('span', { class: 's' }, 'the two add up to 100%')),
+    ];
+    $('pred-a').replaceChildren(...pred('a', r.pa, p.pa));
+    $('pred-b').replaceChildren(...pred('b', r.pb, p.pb));
+    $('imagenet').replaceChildren(...p.imagenet.map(([name, v], k) => el('div', { class: 'bar-row' + (k === 0 ? ' win' : '') },
+      el('span', { class: 'n' }, name), el('div', { class: 'track' }, el('div', { class: 'fillbar', style: `width:${(v * 100).toFixed(1)}%` })), el('span', { class: 'p' }, pct(v)))));
+    drawCam($('cam-b'), img, r.camB); drawCam($('cam-a'), img, r.camA);
+    $('cam-b-cap').textContent = `Model B says ${breed(r.pb)} (${pct(Math.max(r.pb, 1 - r.pb))}): bright areas pushed it there.`;
+    $('cam-a-cap').textContent = `Model A says ${breed(r.pa)} (${pct(Math.max(r.pa, 1 - r.pa))}).`;
+  }
+
+  function select(p) { state.photo = p; render(); }
+  function step(d) { const i = test.indexOf(state.photo); select(test[(i + d + test.length) % test.length]); }
+
+  // ---- Your own photo: pad to a square with grey, resize to 224, run both models ----
+  async function ownPhoto(file) {
+    $('up-err').hidden = true;
+    if (!models) { $('up-err').hidden = false; $('up-err').textContent = 'The models are not loaded yet (or could not load).'; return; }
+    try {
+      const img = await new Promise((ok, bad) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => bad(new Error('not an image')); im.src = URL.createObjectURL(file); });
+      const c = document.createElement('canvas'); c.width = c.height = 224;
+      const ctx = c.getContext('2d'), s = 224 / Math.max(img.width, img.height);
+      ctx.fillStyle = 'rgb(128,128,128)'; ctx.fillRect(0, 0, 224, 224);
+      ctx.drawImage(img, (224 - img.width * s) / 2, (224 - img.height * s) / 2, img.width * s, img.height * s);
+      URL.revokeObjectURL(img.src);
+      const r = await analyse(c);
+      $('up-out').hidden = false;
+      drawCam($('up-cam-b'), c, r.camB); drawCam($('up-cam-a'), c, r.camA);
+      $('up-b').textContent = `Model B: ${breed(r.pb)} (${pct(Math.max(r.pb, 1 - r.pb))})`;
+      $('up-a').textContent = `Model A: ${breed(r.pa)} (${pct(Math.max(r.pa, 1 - r.pa))})`;
+    } catch (e) {
+      $('up-err').hidden = false; $('up-err').textContent = 'That file could not be read as an image.';
+    }
+  }
+
+  // ---- Controls ----
+  $('prev').addEventListener('click', () => step(-1));
+  $('next').addEventListener('click', () => step(1));
+  document.querySelectorAll('#g-filter button').forEach(b => b.addEventListener('click', () => { state.filter = b.dataset.f; renderMistakes(); }));
+  $('file').addEventListener('change', e => { if (e.target.files[0]) ownPhoto(e.target.files[0]); });
+  const drop = $('drop');
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) ownPhoto(e.dataTransfer.files[0]); });
+  $('code-all').addEventListener('click', () => setAllCode(!codeOpen));
+  $('copy').addEventListener('click', async () => {
+    const script = P.fullScript(cells);
+    try { await navigator.clipboard.writeText(script); $('toast').textContent = 'Copied'; }
+    catch (e) { $('copy-fallback').hidden = false; $('copy-fallback').value = script; $('copy-fallback').select(); $('toast').textContent = 'Select and copy'; }
+    setTimeout(() => { $('toast').textContent = ''; }, 2000);
+  });
+
+  renderStatic();
+  render();
+  setAllCode(codeOpen);
+  loadModels().then(m => {
+    models = m;
+    $('engine').textContent = `Models loaded: TensorFlow.js ${tf.version.tfjs} (${tf.getBackend()})`;
+    // 3. The first-layer filters, each as a 3x3 colour patch (normalised per filter)
+    $('filters').replaceChildren(...[...Array(32).keys()].map(f => {
+      const c = el('canvas', { width: 3, height: 3, role: 'img', 'aria-label': `Filter ${f}` }), ctx = c.getContext('2d'), img = ctx.createImageData(3, 3);
+      const vals = [];
+      for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) for (let k = 0; k < 3; k++) vals.push(m.conv1[y][x][k][f]);
+      // Signed: grey is 0, lighter is a positive weight for that colour, darker a negative one (scaled per filter)
+      const big = Math.max(1e-9, ...vals.map(Math.abs));
+      vals.forEach((v, i) => { img.data[Math.floor(i / 3) * 4 + (i % 3)] = 128 + 127 * v / big; });
+      for (let i = 0; i < 9; i++) img.data[4 * i + 3] = 255;
+      ctx.putImageData(img, 0, 0);
+      return c;
+    }));
+    render();
+  }).catch(e => {
+    $('engine').className = 'status warn';
+    $('engine').textContent = 'The models could not load here (' + e.message + '). The precomputed results from Keras are still shown; the live parts (feature maps, heatmaps, your own photo) need the models.';
+  });
+})();
+</script>
+</body>
+</html>
