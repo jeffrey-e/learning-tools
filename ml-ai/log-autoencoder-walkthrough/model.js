@@ -1,6 +1,8 @@
 // The maths behind the log autoencoder walkthrough, shared by index.html (browser) and the tests (Node).
 // Pure functions, no DOM access. pythonCells() writes the same computation as TensorFlow/Keras code,
 // together with the output that code prints; tests/check_outputs.py runs it and checks every line.
+// Every function takes one tokenizer's model (an entry of AE_WEIGHTS): its tokenizer, length L,
+// vocabulary, weights and, for BPE, its merges.
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -20,6 +22,40 @@
     return 'other';
   }
 
+  // ---- Tokenizers (same rules as the Python in pythonCells and tools/train_model.py) ----
+  // The u flag makes JavaScript match whole code points, as Python does (an emoji is one character).
+  const placeholder = p => (/^[0-9]/.test(p) ? (p.includes('.') ? '<ip>' : '<num>') : p);
+  const MASKED = /[0-9]+(?:\.[0-9]+){3}|[0-9]+|[^\n]/gu;
+  const WORDS = /[0-9]+(?:\.[0-9]+){3}|[A-Za-z_][A-Za-z_0-9]*|[0-9]+|[^ ]/gu;
+  const BPE_PIECE = /[A-Za-z_]+|[0-9]+| |[^\n]/gu;
+  function mergePair(word, a, b) {
+    const out = [];
+    for (let i = 0; i < word.length; i++) {
+      if (i + 1 < word.length && word[i] === a && word[i + 1] === b) { out.push(a + b); i++; }
+      else out.push(word[i]);
+    }
+    return out;
+  }
+  const bpeCache = new WeakMap();   // per model: piece -> its subword tokens
+  function tokenize(msg, w) {
+    switch (w.tokenizer) {
+      case 'chars': return Array.from(msg);
+      case 'masked': return (msg.match(MASKED) || []).map(placeholder);
+      case 'words': return (msg.match(WORDS) || []).map(placeholder);
+      case 'bpe': {
+        if (!bpeCache.has(w)) bpeCache.set(w, new Map());
+        const cache = bpeCache.get(w);
+        return (msg.match(BPE_PIECE) || []).flatMap(p => {
+          if (!cache.has(p)) cache.set(p, w.merges.reduce((parts, [a, b]) => mergePair(parts, a, b), Array.from(p)));
+          return cache.get(p);
+        });
+      }
+      default: throw new Error('unknown tokenizer ' + w.tokenizer);
+    }
+  }
+  // How tokens are joined back into text: words were separated by spaces, everything else keeps its spaces.
+  const joiner = w => (w.tokenizer === 'words' ? ' ' : '');
+
   // Keras weights in get_weights() order, by name ("enc_conv1.kernel" and so on).
   function unpack(w) {
     const p = {};
@@ -27,18 +63,19 @@
     return p;
   }
 
-  // Characters to ids. Code points, as in Python (an emoji is one character). 0 = padding, 1 = unknown.
+  // Tokens to ids: 0 = padding, 1 = unknown. Every line becomes exactly L ids.
   function encode(msg, w) {
-    const chars = Array.from(msg).slice(0, w.L);
+    const all = tokenize(msg, w);
+    const tokens = all.slice(0, w.L);
     const index = new Map(w.vocab.map((c, i) => [c, i]));
-    const ids = chars.map(c => (index.has(c) ? index.get(c) : 1));
-    return { chars, n: chars.length, truncated: Array.from(msg).length > w.L, ids: ids.concat(new Array(w.L - ids.length).fill(0)) };
+    const ids = tokens.map(t => (index.has(t) ? index.get(t) : 1));
+    return { tokens, n: tokens.length, truncated: all.length > w.L, ids: ids.concat(new Array(w.L - ids.length).fill(0)) };
   }
 
   // ---- Layers on plain arrays: X is [positions][channels] ----
   // Conv1D with padding="same": position t sees t-2 … t+2 (kernel 5), zeros beyond the edges.
   function conv1d(X, W, b, relu) {
-    const K = W.length, Cin = W[0].length, Cout = b.length, pad = (K - 1) / 2;
+    const K = W.length, Cin = W[0].length, pad = (K - 1) / 2;
     return X.map((_, t) => {
       const out = b.slice();
       for (let k = 0; k < K; k++) {
@@ -46,7 +83,7 @@
         if (!row) continue;
         for (let c = 0; c < Cin; c++) {
           const v = row[c], Wkc = W[k][c];
-          if (v !== 0) for (let o = 0; o < Cout; o++) out[o] += v * Wkc[o];
+          if (v !== 0) for (let o = 0; o < out.length; o++) out[o] += v * Wkc[o];
         }
       }
       return relu ? out.map(v => Math.max(0, v)) : out;
@@ -68,7 +105,7 @@
   // One forward pass through the autoencoder, keeping every intermediate array for the page.
   function run(msg, w) {
     const p = unpack(w);
-    const { chars, n, truncated, ids } = encode(msg, w);
+    const { tokens, n, truncated, ids } = encode(msg, w);
     const emb = ids.map(i => p['embedding.embeddings'][i].slice());
     const enc1 = conv1d(emb, p['enc_conv1.kernel'], p['enc_conv1.bias'], true);
     const pool1 = maxpool(enc1);
@@ -82,20 +119,20 @@
     const nll = ids.slice(0, n).map((id, t) => -Math.log(Math.max(probs[t][id], 1e-7)));
     const recon = probs.slice(0, n).map(row => shown(w.vocab, argmax(row)));
     const score = n ? nll.reduce((s, v) => s + v, 0) / n : NaN;
-    return { chars, n, truncated, ids, emb, enc1, pool1, enc2, z, up1, dec1, up2, dec2, probs, nll, recon, score };
+    return { tokens, n, truncated, ids, emb, enc1, pool1, enc2, z, up1, dec1, up2, dec2, probs, nll, recon, score };
   }
 
-  // The k most likely characters at one position.
+  // The k most likely tokens at one position.
   const topk = (probs, vocab, k) => probs.map((p, i) => ({ i, c: vocab[i], p })).sort((a, b) => b.p - a.p).slice(0, k);
 
-  // Counts at a threshold, from the precomputed scores in data.js.
-  function detect(lines, threshold) {
+  // Counts at a threshold, from the precomputed scores in data.js (k = the tokenizer's index).
+  function detect(lines, threshold, k) {
     const g = { val: [0, 0], testLegit: [0, 0], attack: [0, 0], other: [0, 0] };
-    for (const [, lab, split, score] of lines) {
+    for (const [, lab, split, scores] of lines) {
       const key = lab === 'attack' ? 'attack' : lab === 'other' ? 'other' : split === 'val' ? 'val' : split === 'test' ? 'testLegit' : null;
       if (!key) continue;
       g[key][1]++;
-      if (score > threshold) g[key][0]++;
+      if (scores[k] > threshold) g[key][0]++;
     }
     const caught = g.attack[0], falseAlarms = g.testLegit[0];
     return { ...g, caught, missed: g.attack[1] - caught, falseAlarms, precision: caught / Math.max(caught + falseAlarms, 1), recall: caught / Math.max(g.attack[1], 1) };
@@ -103,23 +140,79 @@
 
   // ---- Python output formatting (must match what the generated code prints) ----
   const pyFixed = (v, d) => (Object.is(v, -0) ? '-' : '') + v.toFixed(d);
+  // Python's repr() of a float, for the values the page uses (0.0001 and up: no exponent in either language).
   const pyNum = v => (Number.isInteger(v) ? v.toFixed(1) : String(v));
   const pyPct = (v, width) => ((v * 100).toFixed(1) + '%').padStart(width);
   const pyShape = dims => '(' + dims.join(', ') + (dims.length === 1 ? ',' : '') + ')';
-  // Python's repr() of a short str without control characters.
+  // Python's repr() of a str without control characters, and of a list of them.
   const pyRepr = s => (s.includes("'") && !s.includes('"') ? `"${s.replace(/\\/g, '\\\\')}"` : `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`);
+  const pyList = xs => '[' + xs.map(x => (Array.isArray(x) ? pyList(x) : pyRepr(x))).join(', ') + ']';
   const row3 = row => row.map(v => pyFixed(v, 3).padStart(7)).join(' ');
 
+  const PLACEHOLDER_PY = [
+    'def placeholder(p):',
+    '    """A number becomes <num>, an IP address <ip>; anything else is kept."""',
+    '    return ("<ip>" if "." in p else "<num>") if p[0] in "0123456789" else p',
+    '',
+  ];
+  // The Python tokenize() for each tokenizer: the same rules as tokenize() above.
+  const TOKENIZE_PY = {
+    chars: [
+      'def tokenize(msg):',
+      '    return list(msg)   # every character is a token',
+    ],
+    masked: [
+      ...PLACEHOLDER_PY,
+      'def tokenize(msg):',
+      '    # IP addresses and numbers become one placeholder token each; everything else is one token per character',
+      String.raw`    return [placeholder(p) for p in re.findall(r"[0-9]+(?:\.[0-9]+){3}|[0-9]+|[^\n]", msg)]`,
+    ],
+    words: [
+      ...PLACEHOLDER_PY,
+      'def tokenize(msg):',
+      '    # Words, numbers, IP addresses and single punctuation marks; spaces only separate them',
+      String.raw`    return [placeholder(p) for p in re.findall(r"[0-9]+(?:\.[0-9]+){3}|[A-Za-z_][A-Za-z_0-9]*|[0-9]+|[^ ]", msg)]`,
+    ],
+    bpe: [
+      'merges = weights["merges"]   # learned from the training lines: the most frequent neighbouring pair first',
+      'print(len(merges), "merges, the first ones:", merges[:6])',
+      '',
+      'def merge(word, a, b):',
+      '    out, i = [], 0',
+      '    while i < len(word):',
+      '        if i + 1 < len(word) and word[i] == a and word[i + 1] == b:',
+      '            out.append(a + b)',
+      '            i += 2',
+      '        else:',
+      '            out.append(word[i])',
+      '            i += 1',
+      '    return out',
+      '',
+      'cache = {}',
+      'def tokenize(msg):',
+      '    tokens = []',
+      String.raw`    for piece in re.findall(r"[A-Za-z_]+|[0-9]+| |[^\n]", msg):   # words, numbers, spaces, other characters`,
+      '        if piece not in cache:',
+      '            parts = list(piece)',
+      '            for a, b in merges:   # replay the merges in the order they were learned',
+      '                parts = merge(parts, a, b)',
+      '            cache[piece] = parts',
+      '        tokens += cache[piece]',
+      '    return tokens',
+    ],
+  };
+
   // The page's TensorFlow/Keras code, one cell per section, each with the exact output it prints.
-  // line: the selected or typed message; pos: the position inspected in the decoder step.
+  // line: the selected or typed message; w: the selected tokenizer's model; pos: the position inspected.
   function pythonCells(line, w, data, { threshold = w.threshold, pos = 0 } = {}) {
+    const k = data.tokenizers.indexOf(w.tokenizer);
     const msgs = data.lines.map(r => r[0]);
     const labels = msgs.map(label);
     const count = name => labels.filter(l => l === name).length;
     const legitN = count('legit');
     const nTrain = Math.trunc(0.6 * legitN), nVal = Math.trunc(0.8 * legitN) - nTrain, nTest = legitN - nTrain - nVal;
     const r = run(line, w);
-    const n = r.n;
+    const n = r.n, L = w.L;
     pos = Math.min(Math.max(pos, 0), Math.max(n - 1, 0));
     const cells = [
       {
@@ -176,28 +269,34 @@
         ].join('\n'),
       },
       {
-        id: 'chars',
+        id: 'tokens',
         code: [
-          'weights = json.load(open("python/weights.json"))',
-          'vocab = weights["vocab"]   # every character in the training lines; 0 = padding, 1 = unknown',
-          'index = {c: i for i, c in enumerate(vocab)}',
-          `L = ${w.L}                    # every line becomes exactly L ids: cut or padded`,
+          `weights = json.load(open("python/weights_${w.tokenizer}.json"))   # the trained model for this tokenizer`,
+          'vocab = weights["vocab"]   # every token in the training lines; 0 = padding, 1 = unknown',
+          'index = {t: i for i, t in enumerate(vocab)}',
+          `L = ${L}                    # every line becomes exactly L ids: cut or padded`,
+          '',
+          ...TOKENIZE_PY[w.tokenizer],
           '',
           'def encode(msg):',
-          '    ids = [index.get(c, 1) for c in msg[:L]]',
+          '    ids = [index.get(t, 1) for t in tokenize(msg)[:L]]',
           '    return ids + [0] * (L - len(ids))',
           '',
           `line = ${JSON.stringify(line)}`,
+          'toks = tokenize(line)[:L]',
           'x = np.array([encode(line)])',
-          'n = min(len(line), L)',
-          'print(len(vocab), "tokens:", "".join(vocab[2:]))',
+          'n = len(toks)',
+          'print(len(vocab), "tokens, for example", vocab[2:10])',
+          'print(toks)',
           'print(x[0, :n].tolist())',
           'print(L - n, "padding positions")',
         ].join('\n'),
         out: [
-          `${w.vocab.length} tokens: ${w.vocab.slice(2).join('')}`,
+          ...(w.tokenizer === 'bpe' ? [`${w.merges.length} merges, the first ones: ${pyList(w.merges.slice(0, 6))}`] : []),
+          `${w.vocab.length} tokens, for example ${pyList(w.vocab.slice(2, 10))}`,
+          pyList(r.tokens),
           '[' + r.ids.slice(0, n).join(', ') + ']',
-          `${w.L - n} padding positions`,
+          `${L - n} padding positions`,
         ].join('\n'),
       },
       {
@@ -205,19 +304,19 @@
         code: [
           'def build_model(V):',
           '    return keras.Sequential([',
-          `        keras.Input((L,), dtype="int32"),`,
+          '        keras.Input((L,), dtype="int32"),',
           '        layers.Embedding(V, 8, name="embedding"),',
-          '        # Encoder: squeeze 128 positions into 32',
+          `        # Encoder: squeeze ${L} positions into ${L / 4}`,
           '        layers.Conv1D(16, 5, padding="same", activation="relu", name="enc_conv1"),',
           '        layers.MaxPooling1D(2, name="enc_pool1"),',
           '        layers.Conv1D(4, 5, padding="same", activation="relu", name="enc_conv2"),',
           '        layers.MaxPooling1D(2, name="bottleneck"),',
-          '        # Decoder: expand back to 128 positions',
+          `        # Decoder: expand back to ${L} positions`,
           '        layers.UpSampling1D(2, name="dec_up1"),',
           '        layers.Conv1D(4, 5, padding="same", activation="relu", name="dec_conv1"),',
           '        layers.UpSampling1D(2, name="dec_up2"),',
           '        layers.Conv1D(16, 5, padding="same", activation="relu", name="dec_conv2"),',
-          '        layers.Conv1D(V, 1, activation="softmax", name="output"),   # a probability per character',
+          '        layers.Conv1D(V, 1, activation="softmax", name="output"),   # a probability per token',
           '    ])',
           '',
           'model = build_model(len(vocab))',
@@ -246,19 +345,19 @@
           id: 'embedding',
           code: [
             '# Each id picks one learned row of 8 numbers',
-            'emb = outs["embedding"]   # (128, 8)',
+            `emb = outs["embedding"]   # (${L}, 8)`,
             `for t in range(${show}):`,
-            '    print(f"{t:>3} {line[t]!r:>5} " + " ".join(f"{v:7.4f}" for v in emb[t]))',
+            '    print(f"{t:>3} {toks[t]!r:>12} " + " ".join(f"{v:7.4f}" for v in emb[t]))',
           ].join('\n'),
-          out: r.emb.slice(0, show).map((row, t) => `${String(t).padStart(3)} ${pyRepr(r.chars[t]).padStart(5)} ` + row.map(v => pyFixed(v, 4).padStart(7)).join(' ')).join('\n'),
+          out: r.emb.slice(0, show).map((row, t) => `${String(t).padStart(3)} ${pyRepr(r.tokens[t]).padStart(12)} ` + row.map(v => pyFixed(v, 4).padStart(7)).join(' ')).join('\n'),
         },
         {
           id: 'encoder',
           code: [
-            '# enc_conv1: 16 filters, each looks at 5 neighbouring characters (positions t-2 … t+2)',
+            '# enc_conv1: 16 filters, each looks at 5 neighbouring tokens (positions t-2 … t+2)',
             `print("enc_conv1 at position ${pos}:")`,
             `print(" ".join(f"{v:.3f}" for v in outs["enc_conv1"][${pos}]))`,
-            '# The bottleneck: 32 positions × 4 numbers. Everything the decoder gets to see',
+            `# The bottleneck: ${L / 4} positions × 4 numbers. Everything the decoder gets to see`,
             'z = outs["bottleneck"]',
             'for t in range(4):',
             '    print(f"z[{t}] " + " ".join(f"{v:7.3f}" for v in z[t]))',
@@ -272,39 +371,41 @@
         {
           id: 'decoder',
           code: [
-            'probs = outs["output"]   # (128, V): a probability for every character, at every position',
+            `probs = outs["output"]   # (${L}, V): a probability for every token in the vocabulary, at every position`,
             `pos = ${pos}`,
-            'print("true character:", repr(line[pos]))',
+            'print("true token:", repr(toks[pos]))',
             'for i in np.argsort(-probs[pos])[:3]:',
-            '    print(f"{vocab[i]!r:>8} {probs[pos, i]:.3f}")',
+            '    print(f"{vocab[i]!r:>12} {probs[pos, i]:.3f}")',
           ].join('\n'),
           out: [
-            `true character: ${pyRepr(r.chars[pos])}`,
-            ...topk(r.probs[pos], w.vocab, 3).map(t => `${pyRepr(t.c).padStart(8)} ${pyFixed(t.p, 3)}`),
+            `true token: ${pyRepr(r.tokens[pos])}`,
+            ...topk(r.probs[pos], w.vocab, 3).map(t => `${pyRepr(t.c).padStart(12)} ${pyFixed(t.p, 3)}`),
           ].join('\n'),
         },
         {
           id: 'reconstruct',
           code: [
-            '# Error per character: -log(probability the model gave the true character)',
+            '# Error per token: -log(probability the model gave the true token)',
             'p_true = probs[np.arange(n), x[0, :n]]',
             'error = -np.log(np.maximum(p_true, 1e-7))',
-            'recon = "".join({0: "·", 1: "?"}.get(i, vocab[i]) for i in probs[:n].argmax(axis=1))',
+            'recon = [{0: "·", 1: "?"}.get(i, vocab[i]) for i in probs[:n].argmax(axis=1)]',
             'score = error.mean()',
             `threshold = ${pyNum(threshold)}`,
-            'print(line[:n])',
-            'print(recon)',
-            'print(f"score {score:.3f}, threshold {threshold}:", "anomaly" if score > threshold else "normal")',
+            `print(${JSON.stringify(joiner(w))}.join(toks))`,
+            `print(${JSON.stringify(joiner(w))}.join(recon))`,
+            'print(f"score {score:.4f}, threshold {threshold}:", "anomaly" if score > threshold else "normal")',
           ].join('\n'),
           out: [
-            r.chars.join(''),
-            r.recon.join(''),
-            `score ${pyFixed(r.score, 3)}, threshold ${pyNum(threshold)}: ${r.score > threshold ? 'anomaly' : 'normal'}`,
+            r.tokens.join(joiner(w)),
+            r.recon.join(joiner(w)),
+            `score ${pyFixed(r.score, 4)}, threshold ${pyNum(threshold)}: ${r.score > threshold ? 'anomaly' : 'normal'}`,
           ].join('\n'),
         },
       );
     }
     const h = w.history;
+    const d = detect(data.lines, threshold, k);
+    const groups = [['validation legit', d.val], ['test legit', d.testLegit], ['attack', d.attack], ['other', d.other]];
     cells.push(
       {
         id: 'training',
@@ -323,33 +424,29 @@
         ].join('\n'),
         out: `loss ${h.loss[h.loss.length - 1].toFixed(4)}, validation loss ${h.val_loss[h.val_loss.length - 1].toFixed(4)}`,
       },
-      (() => {
-        const d = detect(data.lines, threshold);
-        const groups = [['validation legit', d.val], ['test legit', d.testLegit], ['attack', d.attack], ['other', d.other]];
-        return {
-          id: 'detect',
-          code: [
-            '# Score every line with the trained model, then compare with the threshold',
-            'X = np.array([encode(m) for m in messages])',
-            'P = model.predict(X, verbose=0, batch_size=256)',
-            'p_true = np.take_along_axis(P, X[..., None], axis=2)[..., 0]',
-            'real = X > 0',
-            'scores = (-np.log(np.maximum(p_true, 1e-7)) * real).sum(axis=1) / np.maximum(real.sum(axis=1), 1)',
-            '',
-            `threshold = ${pyNum(threshold)}`,
-            'flagged = scores > threshold',
-            'groups = [("validation legit", val_ids), ("test legit", test_ids), ("attack", attack_ids), ("other", other_ids)]',
-            'for name, ids in groups:',
-            '    print(f"{name:>16}: {flagged[ids].sum():4d} of {len(ids):4d} flagged")',
-            'caught, false_alarms = flagged[attack_ids].sum(), flagged[test_ids].sum()',
-            'print(f"precision {caught / max(caught + false_alarms, 1):.3f}, recall {caught / len(attack_ids):.3f}")',
-          ].join('\n'),
-          out: [
-            ...groups.map(([name, [k, of]]) => `${name.padStart(16)}: ${String(k).padStart(4)} of ${String(of).padStart(4)} flagged`),
-            `precision ${d.precision.toFixed(3)}, recall ${d.recall.toFixed(3)}`,
-          ].join('\n'),
-        };
-      })(),
+      {
+        id: 'detect',
+        code: [
+          '# Score every line with the trained model, then compare with the threshold',
+          'X = np.array([encode(m) for m in messages])',
+          'P = model.predict(X, verbose=0, batch_size=256)',
+          'p_true = np.take_along_axis(P, X[..., None], axis=2)[..., 0]',
+          'real = X > 0',
+          'scores = (-np.log(np.maximum(p_true, 1e-7)) * real).sum(axis=1) / np.maximum(real.sum(axis=1), 1)',
+          '',
+          `threshold = ${pyNum(threshold)}`,
+          'flagged = scores > threshold',
+          'groups = [("validation legit", val_ids), ("test legit", test_ids), ("attack", attack_ids), ("other", other_ids)]',
+          'for name, ids in groups:',
+          '    print(f"{name:>16}: {flagged[ids].sum():4d} of {len(ids):4d} flagged")',
+          'caught, false_alarms = flagged[attack_ids].sum(), flagged[test_ids].sum()',
+          'print(f"precision {caught / max(caught + false_alarms, 1):.3f}, recall {caught / len(attack_ids):.3f}")',
+        ].join('\n'),
+        out: [
+          ...groups.map(([name, [kk, of]]) => `${name.padStart(16)}: ${String(kk).padStart(4)} of ${String(of).padStart(4)} flagged`),
+          `precision ${d.precision.toFixed(3)}, recall ${d.recall.toFixed(3)}`,
+        ].join('\n'),
+      },
     );
     return cells;
   }
@@ -357,8 +454,8 @@
   // The copy button's script: every cell except the (slow) training cell.
   const fullScript = cells =>
     '# Log autoencoder walkthrough: anomaly detection in SSH auth.log with a Keras Conv1D autoencoder.\n' +
-    '# Run from the project folder (it reads data/auth.log and python/weights.json).\n\n' +
+    '# Run from the project folder (it reads data/auth.log and python/weights_<tokenizer>.json).\n\n' +
     cells.filter(c => !c.train).map(c => c.code).join('\n\n') + '\n';
 
-  return { RULES, label, unpack, encode, conv1d, maxpool, upsample, softmax, run, topk, detect, pythonCells, fullScript, pyFixed };
+  return { RULES, label, tokenize, joiner, unpack, encode, conv1d, maxpool, upsample, softmax, run, topk, detect, pythonCells, fullScript, pyFixed };
 });

@@ -32,17 +32,17 @@ def main():
     quick = "--quick" in sys.argv
     os.chdir(ROOT)   # the cells read data/auth.log and python/weights.json
     data = json.loads((ROOT / "tests" / "states.json").read_text())
-    failures, outputs, matched, trained = [], 0, 0, False
+    failures, outputs, matched, trained = [], 0, 0, set()
 
     for state in data["states"]:
         ns = {"__name__": "__main__"}
         for cell in state["cells"]:
             if cell.get("train"):
-                if quick or trained:
+                if quick or state["name"].split(" | ")[0] in trained:
                     continue
                 # The real run takes 150 epochs; one is enough to show the code works.
                 run_cell(cell["code"].replace("epochs=", "epochs=1 or "), ns)
-                trained = True
+                trained.add(state["name"].split(" | ")[0])
                 continue
             got = run_cell(cell["code"], ns)
             outputs += 1
@@ -54,12 +54,12 @@ def main():
             actual = ns["outs"][name][: len(expected)]
             if not np.allclose(actual, np.array(expected), atol=TOLERANCE, rtol=0):
                 failures.append(f"{state['name']} / array {name} differs from the page")
-        if state["name"] == data["states"][0]["name"]:
+        if state.get("first") is not None:
             for split, ids in data["splits"].items():
                 if sorted(ns[f"{split}_ids"]) != ids:
                     failures.append(f"the {split} split in the page's code differs from data.js")
-            if not np.allclose(ns["scores"], data["scores"], atol=TOLERANCE * 10, rtol=0):
-                failures.append("the page's scores differ from data.js")
+            if not np.allclose(ns["scores"], data["scores"][state["first"]], atol=TOLERANCE * 10, rtol=0):
+                failures.append(f"{state['name']}: the page's scores differ from data.js")
 
     script_path = ROOT / "python" / "autoencoder_tf.py"
     if script_path.read_text() != data["script"]:
@@ -73,7 +73,7 @@ def main():
         print("\n\n".join(failures))
         sys.exit(1)
     print("python/autoencoder_tf.py: ran")
-    print("training cell: " + ("skipped (--quick)" if quick else "ran for 1 epoch"))
+    print("training cell: " + ("skipped (--quick)" if quick else f"ran for 1 epoch with {len(trained)} tokenizers"))
     print("all checks passed")
 
 

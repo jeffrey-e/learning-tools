@@ -1,5 +1,5 @@
 # Log autoencoder walkthrough: anomaly detection in SSH auth.log with a Keras Conv1D autoencoder.
-# Run from the project folder (it reads data/auth.log and python/weights.json).
+# Run from the project folder (it reads data/auth.log and python/weights_<tokenizer>.json).
 
 import json
 import re
@@ -42,19 +42,24 @@ attack_ids = [i for i, lab in enumerate(labels) if lab == "attack"]
 other_ids = [i for i, lab in enumerate(labels) if lab == "other"]
 print(f"{len(train_ids)} train, {len(val_ids)} validation, {len(test_ids)} + {len(attack_ids)} test")
 
-weights = json.load(open("python/weights.json"))
-vocab = weights["vocab"]   # every character in the training lines; 0 = padding, 1 = unknown
-index = {c: i for i, c in enumerate(vocab)}
+weights = json.load(open("python/weights_chars.json"))   # the trained model for this tokenizer
+vocab = weights["vocab"]   # every token in the training lines; 0 = padding, 1 = unknown
+index = {t: i for i, t in enumerate(vocab)}
 L = 128                    # every line becomes exactly L ids: cut or padded
 
+def tokenize(msg):
+    return list(msg)   # every character is a token
+
 def encode(msg):
-    ids = [index.get(c, 1) for c in msg[:L]]
+    ids = [index.get(t, 1) for t in tokenize(msg)[:L]]
     return ids + [0] * (L - len(ids))
 
 line = "Received disconnect from 85.245.107.41 port 54259:11: disconnected by user"
+toks = tokenize(line)[:L]
 x = np.array([encode(line)])
-n = min(len(line), L)
-print(len(vocab), "tokens:", "".join(vocab[2:]))
+n = len(toks)
+print(len(vocab), "tokens, for example", vocab[2:10])
+print(toks)
 print(x[0, :n].tolist())
 print(L - n, "padding positions")
 
@@ -72,7 +77,7 @@ def build_model(V):
         layers.Conv1D(4, 5, padding="same", activation="relu", name="dec_conv1"),
         layers.UpSampling1D(2, name="dec_up2"),
         layers.Conv1D(16, 5, padding="same", activation="relu", name="dec_conv2"),
-        layers.Conv1D(V, 1, activation="softmax", name="output"),   # a probability per character
+        layers.Conv1D(V, 1, activation="softmax", name="output"),   # a probability per token
     ])
 
 model = build_model(len(vocab))
@@ -89,9 +94,9 @@ for layer in model.layers:
 # Each id picks one learned row of 8 numbers
 emb = outs["embedding"]   # (128, 8)
 for t in range(5):
-    print(f"{t:>3} {line[t]!r:>5} " + " ".join(f"{v:7.4f}" for v in emb[t]))
+    print(f"{t:>3} {toks[t]!r:>12} " + " ".join(f"{v:7.4f}" for v in emb[t]))
 
-# enc_conv1: 16 filters, each looks at 5 neighbouring characters (positions t-2 … t+2)
+# enc_conv1: 16 filters, each looks at 5 neighbouring tokens (positions t-2 … t+2)
 print("enc_conv1 at position 0:")
 print(" ".join(f"{v:.3f}" for v in outs["enc_conv1"][0]))
 # The bottleneck: 32 positions × 4 numbers. Everything the decoder gets to see
@@ -99,21 +104,21 @@ z = outs["bottleneck"]
 for t in range(4):
     print(f"z[{t}] " + " ".join(f"{v:7.3f}" for v in z[t]))
 
-probs = outs["output"]   # (128, V): a probability for every character, at every position
+probs = outs["output"]   # (128, V): a probability for every token in the vocabulary, at every position
 pos = 0
-print("true character:", repr(line[pos]))
+print("true token:", repr(toks[pos]))
 for i in np.argsort(-probs[pos])[:3]:
-    print(f"{vocab[i]!r:>8} {probs[pos, i]:.3f}")
+    print(f"{vocab[i]!r:>12} {probs[pos, i]:.3f}")
 
-# Error per character: -log(probability the model gave the true character)
+# Error per token: -log(probability the model gave the true token)
 p_true = probs[np.arange(n), x[0, :n]]
 error = -np.log(np.maximum(p_true, 1e-7))
-recon = "".join({0: "·", 1: "?"}.get(i, vocab[i]) for i in probs[:n].argmax(axis=1))
+recon = [{0: "·", 1: "?"}.get(i, vocab[i]) for i in probs[:n].argmax(axis=1)]
 score = error.mean()
 threshold = 2.43
-print(line[:n])
-print(recon)
-print(f"score {score:.3f}, threshold {threshold}:", "anomaly" if score > threshold else "normal")
+print("".join(toks))
+print("".join(recon))
+print(f"score {score:.4f}, threshold {threshold}:", "anomaly" if score > threshold else "normal")
 
 # Score every line with the trained model, then compare with the threshold
 X = np.array([encode(m) for m in messages])
